@@ -18,6 +18,7 @@ class AppConfig:
     # 機能設定
     DEFAULT_HOTKEY = "ctrl+shift+r"
     DEFAULT_AUTO_COPY = True
+    DEFAULT_AUTO_PASTE = False
     DEFAULT_ENABLE_SOUND = True
     DEFAULT_SHOW_INDICATOR = True
     DEFAULT_MODEL = "gpt-4o-transcribe"

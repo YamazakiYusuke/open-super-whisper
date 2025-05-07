@@ -26,6 +26,7 @@ from src.gui.components.dialogs.system_instructions_dialog import SystemInstruct
 from src.gui.components.dialogs.hotkey_dialog import HotkeyDialog
 from src.gui.components.widgets.status_indicator import StatusIndicatorWindow
 from src.gui.utils.resource_helper import getResourcePath
+from src.gui.utils.keyboard_helper import KeyboardAutomation
 
 class MainWindow(QMainWindow):
     """
@@ -49,6 +50,7 @@ class MainWindow(QMainWindow):
         # ホットキーとクリップボード設定
         self.hotkey = self.settings.value("hotkey", AppConfig.DEFAULT_HOTKEY)
         self.auto_copy = self.settings.value("auto_copy", AppConfig.DEFAULT_AUTO_COPY, type=bool)
+        self.auto_paste = self.settings.value("auto_paste", AppConfig.DEFAULT_AUTO_PASTE, type=bool)
         
         # ホットキーマネージャーの初期化
         self.hotkey_manager = HotkeyManager()
@@ -310,6 +312,13 @@ class MainWindow(QMainWindow):
         self.auto_copy_action.setChecked(self.auto_copy)
         self.auto_copy_action.triggered.connect(self.toggle_auto_copy)
         toolbar.addAction(self.auto_copy_action)
+        
+        # 自動ペーストオプション
+        self.auto_paste_action = QAction(AppLabels.AUTO_PASTE, self)
+        self.auto_paste_action.setCheckable(True)
+        self.auto_paste_action.setChecked(self.auto_paste)
+        self.auto_paste_action.triggered.connect(self.toggle_auto_paste)
+        toolbar.addAction(self.auto_paste_action)
         
         # サウンドオプション
         self.sound_action = QAction(AppLabels.SOUND_NOTIFICATION, self)
@@ -585,7 +594,19 @@ class MainWindow(QMainWindow):
         # 有効な場合は自動でクリップボードにコピー
         if self.auto_copy and text:
             QApplication.clipboard().setText(text)
-            self.status_bar.showMessage(AppLabels.STATUS_TRANSCRIBED_COPIED + f" (使用モデル: {model_name})", 3000)
+            
+            # 自動ペーストが有効なら、クリップボードの内容をペースト
+            if self.auto_paste:
+                # キーボードオートメーションでペースト操作を実行
+                try:
+                    keyboard_automation = KeyboardAutomation.get_instance()
+                    keyboard_automation.paste_clipboard_content()
+                    self.status_bar.showMessage(AppLabels.STATUS_TRANSCRIBED_PASTED + f" (使用モデル: {model_name})", 3000)
+                except Exception as e:
+                    print(f"自動ペースト中にエラーが発生しました: {str(e)}")
+                    self.status_bar.showMessage(AppLabels.STATUS_TRANSCRIBED_COPIED + f" (使用モデル: {model_name})", 3000)
+            else:
+                self.status_bar.showMessage(AppLabels.STATUS_TRANSCRIBED_COPIED + f" (使用モデル: {model_name})", 3000)
         else:
             # 自動コピーが無効の場合でもモデル情報でステータスを更新
             self.status_bar.showMessage(AppLabels.STATUS_TRANSCRIBED + f" (使用モデル: {model_name})", 3000)
@@ -683,6 +704,20 @@ class MainWindow(QMainWindow):
             self.status_bar.showMessage(AppLabels.STATUS_AUTO_COPY_ENABLED, 2000)
         else:
             self.status_bar.showMessage(AppLabels.STATUS_AUTO_COPY_DISABLED, 2000)
+            
+    def toggle_auto_paste(self):
+        """
+        自動ペースト機能のオン/オフを切り替える
+        
+        文字起こし完了時の自動ペースト機能の有効/無効を
+        切り替え、設定を保存します。
+        """
+        self.auto_paste = self.auto_paste_action.isChecked()
+        self.settings.setValue("auto_paste", self.auto_paste)
+        if self.auto_paste:
+            self.status_bar.showMessage(AppLabels.STATUS_AUTO_PASTE_ENABLED, 2000)
+        else:
+            self.status_bar.showMessage(AppLabels.STATUS_AUTO_PASTE_DISABLED, 2000)
     
     def quit_application(self):
         """
