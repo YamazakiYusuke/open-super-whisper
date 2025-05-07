@@ -23,6 +23,14 @@ class AppStyles:
     COLOR_TEXT_SECONDARY = "#555555"
     COLOR_SELECTION = "#EBF0FF"
 
+    # ダークテーマ用カラーパレット
+    COLOR_BACKGROUND_DARK = "#232629"
+    COLOR_SURFACE_DARK = "#2C2F33"
+    COLOR_BORDER_DARK = "#44474A"
+    COLOR_TEXT_PRIMARY_DARK = "#F3F3F3"
+    COLOR_TEXT_SECONDARY_DARK = "#BBBBBB"
+    COLOR_SELECTION_DARK = "#3A5CB8"
+
     # APIキーダイアログのスタイル
     API_KEY_DIALOG_STYLE = """
         QDialog {
@@ -532,6 +540,132 @@ class AppStyles:
         }
     """
 
+    # ダークテーマ用メインウィンドウスタイル
+    MAIN_WINDOW_STYLE_DARK = """
+        * {
+            font-family: \"Segoe UI\", Arial, sans-serif;
+            font-size: 13px;
+        }
+        QMainWindow {
+            background-color: #232629;
+        }
+        QToolBar {
+            background-color: #2C2F33;
+            border-bottom: 1px solid #44474A;
+            spacing: 5px;
+            padding: 5px;
+            font-size: 13px;
+        }
+        QToolBar QAction {
+            padding: 4px 8px;
+        }
+        QMenu {
+            background-color: #2C2F33;
+            border: 1px solid #44474A;
+            padding: 2px;
+        }
+        QMenu::item:selected {
+            background-color: #3A5CB8;
+            color: white;
+            border-radius: 3px;
+            padding: 3px 6px;
+        }
+        QMenu::item {
+            padding: 3px 6px;
+            margin: 1px 3px;
+        }
+        QMenu::separator {
+            height: 1px;
+            background-color: #44474A;
+            margin: 4px 8px;
+        }
+        QToolBar QAction:checked {
+            background-color: #3A5CB8;
+            color: white;
+            border-radius: 3px;
+        }
+        QToolBar QAction:hover {
+            background-color: #3A5CB8;
+            border-radius: 3px;
+        }
+        QToolButton {
+            padding: 5px 8px;
+            border-radius: 3px;
+            margin: 1px;
+        }
+        QToolButton:checked {
+            background-color: #3A5CB8;
+            color: white;
+            font-weight: bold;
+        }
+        QToolButton:hover {
+            background-color: #3A5CB8;
+        }
+        QToolButton:checked:hover {
+            background-color: #4968C2;
+        }
+        QToolButton:pressed {
+            background-color: #4968C2;
+            color: white;
+        }
+        QPushButton {
+            background-color: #5B7FDE;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 16px;
+            font-weight: bold;
+            font-size: 13px;
+        }
+        QPushButton:hover {
+            background-color: #4968C2;
+        }
+        QPushButton:pressed {
+            background-color: #3A5CB8;
+        }
+        QTextEdit {
+            border: 1px solid #44474A;
+            border-radius: 4px;
+            background-color: #2C2F33;
+            color: #F3F3F3;
+            padding: 8px;
+            font-size: 14px;
+        }
+        QComboBox {
+            border: 1px solid #44474A;
+            border-radius: 4px;
+            padding: 6px 12px;
+            background-color: #232629;
+            color: #F3F3F3;
+            min-width: 150px;
+        }
+        QComboBox:hover {
+            border-color: #3A5CB8;
+        }
+        QComboBox::drop-down {
+            subcontrol-origin: padding;
+            subcontrol-position: center right;
+            width: 20px;
+            border-left: none;
+        }
+        QComboBox QAbstractItemView {
+            background-color: #232629;
+            border: 1px solid #44474A;
+            selection-background-color: #3A5CB8;
+            selection-color: white;
+        }
+        QStatusBar {
+            background-color: #2C2F33;
+            color: #BBBBBB;
+            border-top: 1px solid #44474A;
+            font-size: 13px;
+        }
+        QLabel {
+            color: #F3F3F3;
+            font-size: 13px;
+        }
+    """
+
     # コントロールパネルのスタイル
     CONTROL_PANEL_STYLE = """
         #controlPanel {
@@ -600,6 +734,16 @@ class AppStyles:
         }
     """
 
+    # ダークテーマ用文字起こしパネルのスタイル
+    TRANSCRIPTION_PANEL_STYLE_DARK = """
+        #transcriptionPanel {
+            background-color: #2C2F33;
+            border-radius: 8px;
+            border: 1px solid #44474A;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+        }
+    """
+
     # 文字起こしタイトルのスタイル 
     TRANSCRIPTION_TITLE_STYLE = """
         color: #324275;
@@ -610,10 +754,29 @@ class AppStyles:
         margin-bottom: 5px;
     """
 
+    # ダークテーマ用文字起こしタイトルのスタイル
+    TRANSCRIPTION_TITLE_STYLE_DARK = """
+        color: #F3F3F3;
+        font-weight: bold;
+        font-size: 15px;
+        border-bottom: 1px solid #44474A;
+        padding-bottom: 8px;
+        margin-bottom: 5px;
+    """
+
     # 文字起こしテキストエリアのスタイル
     TRANSCRIPTION_TEXT_STYLE = """
         border: none;
         background-color: white;
+        font-size: 14px;
+        line-height: 1.5;
+    """
+
+    # ダークテーマ用文字起こしテキストエリアのスタイル
+    TRANSCRIPTION_TEXT_STYLE_DARK = """
+        border: none;
+        background-color: #2C2F33;
+        color: #F3F3F3;
         font-size: 14px;
         line-height: 1.5;
     """

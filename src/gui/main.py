@@ -8,6 +8,25 @@ from src.gui.windows.main_window import MainWindow
 from src.gui.resources.config import AppConfig
 from src.gui.resources.labels import AppLabels
 from src.gui.utils.resource_helper import getResourcePath
+from src.gui.resources.styles import AppStyles
+
+# Windowsのダークテーマ判定用
+if sys.platform == "win32":
+    import winreg
+
+def is_windows_dark_theme():
+    if sys.platform != "win32":
+        return False
+    try:
+        with winreg.OpenKey(
+            winreg.HKEY_CURRENT_USER,
+            r"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize"
+        ) as key:
+            # 0: dark, 1: light
+            value, _ = winreg.QueryValueEx(key, "AppsUseLightTheme")
+            return value == 0
+    except Exception:
+        return False
 
 def main():
     """
@@ -47,6 +66,10 @@ def main():
     
     # メインウィンドウの作成と表示
     window = MainWindow()
+    
+    # ダークテーマならダークスタイルを適用
+    if is_windows_dark_theme():
+        window.setStyleSheet(AppStyles.MAIN_WINDOW_STYLE_DARK)
     
     # 初回起動時はホットキーについての通知を表示
     if not window.settings.contains("first_run_done"):
