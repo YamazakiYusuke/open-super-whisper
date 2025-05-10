@@ -45,7 +45,6 @@ class MainWindow(QMainWindow):
     
     def __init__(self):
         super().__init__()
-        print("[DEBUG] MainWindow.__init__ called")
         
         # 設定の読み込み
         self.settings = QSettings(AppConfig.APP_ORGANIZATION, AppConfig.APP_NAME)
@@ -97,7 +96,6 @@ class MainWindow(QMainWindow):
         self.init_ui()
         
         # シグナルの接続
-        print("[DEBUG] transcription_complete.connect called")
         self.transcription_complete.connect(self.on_transcription_complete)
         self.recording_status_changed.connect(self.update_recording_status)
         self.model_loading_complete_signal.connect(self._on_model_loading_complete_ui)
@@ -134,7 +132,6 @@ class MainWindow(QMainWindow):
         else:
             # アイコンファイルが見つからない場合は標準アイコンを使用
             self.setWindowIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_MediaPlay))
-            print(f"Warning: Icon file not found: {icon_path}")
             
         # アプリ全体のスタイルを設定
         self.setStyleSheet(AppStyles.MAIN_WINDOW_STYLE)
@@ -523,7 +520,6 @@ class MainWindow(QMainWindow):
             self.status_indicator_window.update_timer(time_str)
     
     def start_transcription(self, audio_file=None):
-        print(f"[DEBUG] start_transcription called. audio_file={audio_file}")
         self.status_bar.showMessage(AppLabels.STATUS_TRANSCRIBING)
         
         # 文字起こし中状態の表示
@@ -538,7 +534,6 @@ class MainWindow(QMainWindow):
         
         # バックグラウンドスレッドで文字起こし処理を実行
         if audio_file:
-            print("[DEBUG] start_transcription: starting transcription thread")
             transcription_thread = threading.Thread(
                 target=self.perform_transcription,
                 args=(audio_file, selected_language)
@@ -547,7 +542,6 @@ class MainWindow(QMainWindow):
             transcription_thread.start()
     
     def perform_transcription(self, audio_file, language=None):
-        print(f"[DEBUG] perform_transcription called. audio_file={audio_file}, language={language}")
         try:
             # 一時ファイルへの参照を保持する（ガベージコレクション防止）
             self._current_audio_file = audio_file
@@ -555,7 +549,6 @@ class MainWindow(QMainWindow):
             # ファイルが存在することを確認
             if not os.path.exists(audio_file):
                 err_msg = f"音声ファイルが見つかりません: {audio_file}"
-                print(err_msg)
                 self.transcription_complete.emit(AppLabels.ERROR_TRANSCRIPTION.format(err_msg))
                 return
                 
@@ -571,7 +564,6 @@ class MainWindow(QMainWindow):
                                           text=True)
                     if result.returncode != 0:
                         err_msg = "ffmpegがインストールされていないか、正しく設定されていません。"
-                        print(err_msg)
                         self.transcription_complete.emit(AppLabels.ERROR_TRANSCRIPTION.format(err_msg))
                         return
                 except Exception as e:
@@ -579,7 +571,6 @@ class MainWindow(QMainWindow):
             
             # 音声を文字起こし
             result = self.transcription_manager.transcribe(audio_file, language)
-            print(f"[DEBUG] perform_transcription: emitting transcription_complete. result={result}")
             
             # 結果でシグナルを発信
             self.transcription_complete.emit(result)
@@ -587,11 +578,9 @@ class MainWindow(QMainWindow):
         except Exception as e:
             # エラー処理
             error_msg = str(e)
-            print(f"[DEBUG] perform_transcription: exception occurred: {error_msg}")
             self.transcription_complete.emit(AppLabels.ERROR_TRANSCRIPTION.format(error_msg))
     
     def on_transcription_complete(self, text):
-        print(f"[DEBUG] on_transcription_complete called. text={text}")
         # 文字起こし結果でテキストウィジェットを更新
         self.transcription_text.setPlainText(text)
         
@@ -742,13 +731,10 @@ class MainWindow(QMainWindow):
             result = self.hotkey_manager.register_hotkey(self.hotkey, self.toggle_recording)
             
             if result:
-                print(f"Hotkey '{self.hotkey}' has been set successfully")
                 return True
             else:
                 raise ValueError(f"Failed to register hotkey: {self.hotkey}")
         except Exception as e:
-            error_msg = f"Hotkey setup error: {e}"
-            print(error_msg)
             # エラーメッセージをユーザーに表示
             self.status_bar.showMessage(AppLabels.ERROR_HOTKEY.format(str(e)), 5000)
             # エラーがあってもアプリは正常に動作するようにする
@@ -929,8 +915,7 @@ class MainWindow(QMainWindow):
         else:
             # アイコンファイルが見つからない場合は標準アイコンを使用
             self.tray_icon = QSystemTrayIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_MediaPlay), self)
-            print(f"Warning: System tray icon file not found: {icon_path}")
-        
+            
         self.tray_icon.setToolTip(AppLabels.APP_TITLE)
         
         # トレイメニューをスタイル付きで作成
