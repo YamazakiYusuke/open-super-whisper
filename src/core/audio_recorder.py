@@ -31,7 +31,11 @@ class AudioRecorder:
         self.channels = channels
         self.recording = False
         self.audio_data = []
-        self.temp_dir = tempfile.gettempdir()
+        
+        # 専用の一時ディレクトリを作成
+        self.temp_dir = os.path.join(tempfile.gettempdir(), "open_super_whisper", "recordings")
+        os.makedirs(self.temp_dir, exist_ok=True)
+        
         self._record_thread = None
 
     def start_recording(self):
@@ -77,9 +81,20 @@ class AudioRecorder:
         
         # 録音した音声を保存
         if len(self.audio_data) > 0:
-            audio_data = np.concatenate(self.audio_data, axis=0)
-            sf.write(filename, audio_data, self.sample_rate)
-            return filename
+            try:
+                audio_data = np.concatenate(self.audio_data, axis=0)
+                sf.write(filename, audio_data, self.sample_rate)
+                
+                # ファイルが正常に保存されたか確認
+                if os.path.exists(filename) and os.path.getsize(filename) > 0:
+                    print(f"録音ファイル保存成功: {filename}")
+                    return filename
+                else:
+                    print(f"録音ファイル保存に失敗: {filename}")
+                    return None
+            except Exception as e:
+                print(f"録音ファイル保存中にエラー: {e}")
+                return None
         
         return None
     

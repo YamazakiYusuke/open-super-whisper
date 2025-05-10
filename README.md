@@ -20,14 +20,29 @@ That's it! No need to switch applications during your workflow.
 - 🔧 System instructions for controlling transcription behavior
 - 📋 Copy transcription to clipboard
 - 🔄 Real-time recording status and timer
+- 💻 Support for both OpenAI API and local Whisper models
 
 ## Available Models
 
-Open Super Whisper supports the following AI transcription models:
+Open Super Whisper supports two transcription modes:
+
+### OpenAI API Models
 
 - **Whisper-1** - OpenAI's original open-source Whisper model
 - **GPT-4o Transcribe** - High-performance transcription model offering superior accuracy
 - **GPT-4o Mini Transcribe** - Lightweight and fast transcription model with a good balance of speed and accuracy
+
+### Local Whisper Models
+
+No API key required! Use Whisper models directly on your computer:
+
+- **Tiny (39MB)** - Smallest and fastest model, lower accuracy
+- **Base (142MB)** - Small, balanced model
+- **Small (466MB)** - Medium-sized balanced model
+- **Medium (1.5GB)** - High-accuracy medium model
+- **Large (3GB)** - Highest accuracy model
+
+Local models require more system resources but eliminate the need for an internet connection and API costs.
 
 ## Demo
 
@@ -39,10 +54,42 @@ You can download the latest executable file (.exe) for Windows from our [GitHub 
 
 ## Requirements
 
-- OpenAI API key
+- For API mode: OpenAI API key
+- For local mode: FFmpeg installed on your system
 - Windows or macOS operating system
 
 ## Installation
+
+### Additional Setup for Local Whisper Mode
+
+To use the local Whisper models, you'll need to install FFmpeg:
+
+#### Windows
+```bash
+# Using winget
+winget install -e --id Gyan.FFmpeg
+
+# Or download from the official site
+# https://ffmpeg.org/download.html
+```
+
+#### macOS
+```bash
+# Using Homebrew
+brew install ffmpeg
+```
+
+#### Linux
+```bash
+# Ubuntu/Debian
+sudo apt update && sudo apt install ffmpeg
+
+# Fedora
+sudo dnf install ffmpeg
+
+# Arch Linux
+sudo pacman -S ffmpeg
+```
 
 ### Using UV Package Manager
 
@@ -63,7 +110,7 @@ powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | ie
 # macOS/Linux
 curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
-
+Error: [WinError 2] 指定されたファイルが見つかりません。
 3. Clone or download this repository
 
 4. Set up the project using UV's sync command, which will create a virtual environment and install all dependencies:
@@ -127,12 +174,22 @@ Once the build is complete, you'll find `OpenSuperWhisper.exe` in the `dist` fol
 
 ## Usage
 
-### Setting up your API Key
+### Choosing a Transcription Mode
 
-1. On first launch, you'll be prompted to enter your OpenAI API key
+1. Select either "OpenAI API" or "Local Model" from the "Transcription Mode" dropdown
+2. For API mode, you'll need an OpenAI API key
+3. For local mode, you can select from various model sizes
+   - Smaller models are faster but less accurate
+   - Larger models are more accurate but require more memory and processing power
+4. The first time you use a local model, it will be downloaded automatically
+
+### Setting up your API Key (For API Mode)
+
+1. On first launch with API mode, you'll be prompted to enter your OpenAI API key
 2. If you don't have an API key, you can get one from [OpenAI's website](https://platform.openai.com/api-keys)
 3. Your API key will be saved for future use
 4. To change it later, click "API Key Settings" in the toolbar
+5. Not required for local mode
 
 ### Recording Audio
 
@@ -164,9 +221,15 @@ Once the build is complete, you'll find `OpenSuperWhisper.exe` in the `dist` fol
 
 ### Model Selection
 
-1. Select the Whisper model to use from the dropdown menu
+1. Select the model to use from the dropdown menu
 2. Different models offer different balances of accuracy and processing speed
 3. Your selected model will be remembered for future sessions
+4. For local mode, be aware of memory requirements:
+   - Tiny: ~39MB RAM
+   - Base: ~142MB RAM
+   - Small: ~466MB RAM
+   - Medium: ~1.5GB RAM
+   - Large: ~3GB RAM
 
 ### Custom Vocabulary
 
@@ -206,12 +269,57 @@ python main.py --minimized
 
 Using the `-m` or `--minimized` option will start the application minimized to the system tray only, without showing the window.
 
+## Troubleshooting
+
+### "指定されたファイルが見つかりません" (File Not Found) Error
+
+If you encounter a "File Not Found" error when using local mode, it's most likely because FFmpeg is not installed or properly configured on your system.
+
+#### Solution:
+
+1. **Install FFmpeg**
+   - For Windows, use the command: `winget install -e --id Gyan.FFmpeg`
+   - For macOS, use: `brew install ffmpeg`
+   - For Linux, use the appropriate command for your distribution as shown in the Installation section
+
+2. **Verify FFmpeg Installation**
+   After installation, verify FFmpeg is correctly installed by running:
+   ```bash
+   ffmpeg -version
+   ```
+   This should display FFmpeg version information.
+
+3. **Set System PATH**
+   If FFmpeg is installed but not found, you may need to add it to your system PATH:
+   - Windows: Find the FFmpeg installation folder (typically in `C:\Users\<YourUsername>\AppData\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg_<version>\ffmpeg-<version>-full_build\bin`) and add it to your PATH environment variable.
+   - macOS/Linux: This should be handled automatically by the package manager.
+
+4. **Restart Application**
+   After installing FFmpeg, restart the Open Super Whisper application.
+
+### No Sound Detected During Recording
+
+If the application doesn't seem to record your voice, check the following:
+
+1. Ensure your microphone is properly connected and set as the default recording device
+2. Check if your microphone has proper permissions in your system settings
+3. Try speaking louder or moving closer to the microphone
+
+### Other Issues
+
+If you're still experiencing issues:
+
+1. Check the console output for detailed error messages
+2. Make sure you have the latest version of the application
+3. Try running the application with administrator privileges
+4. On Windows, check if any antivirus software is blocking the application's access to your microphone or temporary folders
+
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## Acknowledgements
 
-- This application uses [OpenAI's Whisper API](https://platform.openai.com/docs/guides/speech-to-text) for speech recognition
+- This application uses [OpenAI's Whisper API](https://platform.openai.com/docs/guides/speech-to-text) and [Whisper open source model](https://github.com/openai/whisper) for speech recognition
 - Built with [PyQt6](https://www.riverbankcomputing.com/software/pyqt/) for the user interface
 - Inspired by the [Super Whisper](https://superwhisper.com/) desktop application

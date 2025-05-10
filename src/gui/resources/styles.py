@@ -672,7 +672,6 @@ class AppStyles:
             background-color: white;
             border-radius: 8px;
             border: 1px solid #E2E6EC;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
     """
 
@@ -686,17 +685,14 @@ class AppStyles:
             padding: 8px 20px;
             font-weight: bold;
             font-size: 14px;
-            box-shadow: 0 2px 4px rgba(91, 127, 222, 0.2);
         }
         
         #recordButton:hover {
             background-color: #4968C2;
-            box-shadow: 0 3px 5px rgba(91, 127, 222, 0.3);
         }
         
         #recordButton:pressed {
             background-color: #3A5CB8;
-            box-shadow: 0 1px 2px rgba(91, 127, 222, 0.2);
         }
     """
 
@@ -710,17 +706,14 @@ class AppStyles:
             padding: 8px 20px;
             font-weight: bold;
             font-size: 14px;
-            box-shadow: 0 2px 4px rgba(224, 82, 82, 0.2);
         }
         
         #recordButton:hover {
             background-color: #D03A3A;
-            box-shadow: 0 3px 5px rgba(224, 82, 82, 0.3);
         }
         
         #recordButton:pressed {
             background-color: #C02E2E;
-            box-shadow: 0 1px 2px rgba(224, 82, 82, 0.2);
         }
     """
 
@@ -730,7 +723,6 @@ class AppStyles:
             background-color: white;
             border-radius: 8px;
             border: 1px solid #E2E6EC;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
     """
 

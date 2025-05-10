@@ -16,6 +16,7 @@ from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
 
 from src.core.audio_recorder import AudioRecorder
 from src.core.whisper_api import WhisperTranscriber
+from src.core.transcription_manager import TranscriptionManager, TranscriptionMode
 from src.core.hotkeys import HotkeyManager
 from src.gui.resources.config import AppConfig
 from src.gui.resources.labels import AppLabels
@@ -24,6 +25,7 @@ from src.gui.components.dialogs.api_key_dialog import APIKeyDialog
 from src.gui.components.dialogs.vocabulary_dialog import VocabularyDialog
 from src.gui.components.dialogs.system_instructions_dialog import SystemInstructionsDialog
 from src.gui.components.dialogs.hotkey_dialog import HotkeyDialog
+from src.gui.components.dialogs.model_loading_dialog import ModelLoadingDialog
 from src.gui.components.widgets.status_indicator import StatusIndicatorWindow
 from src.gui.utils.resource_helper import getResourcePath
 from src.gui.utils.keyboard_helper import KeyboardAutomation
@@ -39,13 +41,18 @@ class MainWindow(QMainWindow):
     # カスタムシグナルの定義
     transcription_complete = pyqtSignal(str)
     recording_status_changed = pyqtSignal(bool)
+    model_loading_complete_signal = pyqtSignal(bool, object)  # (success, error)
     
     def __init__(self):
         super().__init__()
+        print("[DEBUG] MainWindow.__init__ called")
         
         # 設定の読み込み
         self.settings = QSettings(AppConfig.APP_ORGANIZATION, AppConfig.APP_NAME)
         self.api_key = self.settings.value("api_key", AppConfig.DEFAULT_API_KEY)
+        
+        # 文字起こしモード（新規追加）
+        self.transcription_mode = int(self.settings.value("transcription_mode", AppConfig.DEFAULT_TRANSCRIPTION_MODE))
         
         # ホットキーとクリップボード設定
         self.hotkey = self.settings.value("hotkey", AppConfig.DEFAULT_HOTKEY)
@@ -56,11 +63,20 @@ class MainWindow(QMainWindow):
         self.hotkey_manager = HotkeyManager()
         
         # コアコンポーネントの初期化
-        self.audio_recorder = None
-        self.whisper_transcriber = None
+        self.audio_recorder = AudioRecorder()
+        
+        # 文字起こし管理クラスの初期化（API→TranscriptionManager）
+        self.transcription_manager = TranscriptionManager(api_key=self.api_key)
+        self.transcription_manager.set_mode(self.transcription_mode)
+        
+        # モデルロード中かどうかのフラグ（新規追加）
+        self.is_model_loading = False
         
         # 録音状態
         self.is_recording = False
+        
+        # 現在処理中の音声ファイルへの参照
+        self._current_audio_file = None
         
         # サウンド設定
         self.enable_sound = self.settings.value("enable_sound", AppConfig.DEFAULT_ENABLE_SOUND, type=bool)
@@ -71,29 +87,23 @@ class MainWindow(QMainWindow):
         # サウンドプレーヤーの初期化
         self.setup_sound_players()
         
-        # コンポーネントの初期化
-        self.audio_recorder = AudioRecorder()
-        
         # 状態表示ウィンドウ
         self.status_indicator_window = StatusIndicatorWindow()
         # 初期モードを録音中に設定
         self.status_indicator_window.set_mode(StatusIndicatorWindow.MODE_RECORDING)
         # 初期状態では表示しない - 録音開始時に表示する
         
-        try:
-            self.whisper_transcriber = WhisperTranscriber(api_key=self.api_key)
-        except ValueError:
-            self.whisper_transcriber = None
-        
         # UIの設定
         self.init_ui()
         
         # シグナルの接続
+        print("[DEBUG] transcription_complete.connect called")
         self.transcription_complete.connect(self.on_transcription_complete)
         self.recording_status_changed.connect(self.update_recording_status)
+        self.model_loading_complete_signal.connect(self._on_model_loading_complete_ui)
         
         # APIキーの確認
-        if not self.api_key:
+        if self.transcription_mode == TranscriptionMode.API.value and not self.api_key:
             self.show_api_key_dialog()
             
         # 追加の接続設定
@@ -163,6 +173,21 @@ class MainWindow(QMainWindow):
         form_layout.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.AllNonFixedFieldsGrow)
         form_layout.setLabelAlignment(Qt.AlignmentFlag.AlignRight)
         
+        # 文字起こしモード選択（新規追加）
+        mode_label = QLabel(AppLabels.TRANSCRIPTION_MODE)
+        self.mode_combo = QComboBox()
+        self.mode_combo.setObjectName("modeCombo")
+        self.mode_combo.addItem(AppLabels.MODE_API, TranscriptionMode.API.value)
+        self.mode_combo.addItem(AppLabels.MODE_LOCAL, TranscriptionMode.LOCAL.value)
+        
+        # 設定から前回のモードを復元
+        index = self.mode_combo.findData(self.transcription_mode)
+        if index >= 0:
+            self.mode_combo.setCurrentIndex(index)
+        
+        # フォームレイアウトにモード選択を追加
+        form_layout.addRow(mode_label, self.mode_combo)
+        
         # 言語選択
         self.language_combo = QComboBox()
         self.language_combo.setObjectName("languageCombo")
@@ -184,22 +209,9 @@ class MainWindow(QMainWindow):
         self.model_combo = QComboBox()
         self.model_combo.setObjectName("modelCombo")
         
-        # モデルリストを取得してコンボボックスに追加
-        for model in WhisperTranscriber.get_available_models():
-            self.model_combo.addItem(model["name"], model["id"])
-            # ツールチップを追加
-            self.model_combo.setItemData(
-                self.model_combo.count() - 1, 
-                model["description"], 
-                Qt.ItemDataRole.ToolTipRole
-            )
+        # モードに合わせてモデルコンボボックスを更新
+        self.update_model_combo()
         
-        # 前回選択したモデルを設定
-        last_model = self.settings.value("model", AppConfig.DEFAULT_MODEL)
-        index = self.model_combo.findData(last_model)
-        if index >= 0:
-            self.model_combo.setCurrentIndex(index)
-            
         # フォームにフィールドを追加
         language_label = QLabel(AppLabels.LANGUAGE_LABEL)
         language_label.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
@@ -356,10 +368,10 @@ class MainWindow(QMainWindow):
             
             # 新しいAPIキーでトランスクライバーを再初期化
             try:
-                self.whisper_transcriber = WhisperTranscriber(api_key=self.api_key)
+                self.transcription_manager.set_api_key(self.api_key)
                 self.status_bar.showMessage(AppLabels.STATUS_API_KEY_SAVED, 3000)
             except ValueError as e:
-                self.whisper_transcriber = None
+                self.transcription_manager = None
                 QMessageBox.warning(self, AppLabels.ERROR_TITLE, AppLabels.ERROR_API_KEY_MISSING)
     
     def show_vocabulary_dialog(self):
@@ -368,32 +380,32 @@ class MainWindow(QMainWindow):
         
         文字起こしの精度向上のためのカスタム語彙を管理するダイアログを表示します。
         """
-        if not self.whisper_transcriber:
+        if not self.transcription_manager:
             QMessageBox.warning(self, AppLabels.ERROR_TITLE, AppLabels.ERROR_API_KEY_REQUIRED)
             return
             
-        vocabulary = self.whisper_transcriber.get_custom_vocabulary()
+        vocabulary = self.transcription_manager.get_custom_vocabulary()
         dialog = VocabularyDialog(self, vocabulary)
         
         if dialog.exec():
             new_vocabulary = dialog.get_vocabulary()
-            self.whisper_transcriber.clear_custom_vocabulary()
-            self.whisper_transcriber.add_custom_vocabulary(new_vocabulary)
+            self.transcription_manager.clear_custom_vocabulary()
+            self.transcription_manager.add_custom_vocabulary(new_vocabulary)
             self.status_bar.showMessage(AppLabels.STATUS_VOCABULARY_ADDED.format(len(new_vocabulary)), 3000)
     
     def show_system_instructions_dialog(self):
         """システム指示を管理するダイアログを表示"""
-        if not self.whisper_transcriber:
+        if not self.transcription_manager:
             QMessageBox.warning(self, AppLabels.ERROR_TITLE, AppLabels.ERROR_API_KEY_REQUIRED)
             return
             
-        instructions = self.whisper_transcriber.get_system_instructions()
+        instructions = self.transcription_manager.get_system_instructions()
         dialog = SystemInstructionsDialog(self, instructions)
         
         if dialog.exec():
             new_instructions = dialog.get_instructions()
-            self.whisper_transcriber.clear_system_instructions()
-            self.whisper_transcriber.add_system_instruction(new_instructions)
+            self.transcription_manager.clear_system_instructions()
+            self.transcription_manager.add_system_instruction(new_instructions)
             self.status_bar.showMessage(AppLabels.STATUS_INSTRUCTIONS_SET.format(len(new_instructions)), 3000)
     
     def toggle_recording(self):
@@ -423,7 +435,7 @@ class MainWindow(QMainWindow):
         録音を開始し、UIの状態を更新します。録音中はタイマーを表示し、
         インジケーターウィンドウを表示します。
         """
-        if not self.whisper_transcriber:
+        if not self.transcription_manager:
             QMessageBox.warning(self, AppLabels.ERROR_TITLE, AppLabels.ERROR_API_KEY_REQUIRED)
             return
             
@@ -511,16 +523,7 @@ class MainWindow(QMainWindow):
             self.status_indicator_window.update_timer(time_str)
     
     def start_transcription(self, audio_file=None):
-        """
-        文字起こしを開始する
-        
-        Parameters
-        ----------
-        audio_file : str, optional
-            文字起こしを行う音声ファイルのパス
-        
-        録音した音声ファイルの文字起こしを開始し、UIの状態を更新します。
-        """
+        print(f"[DEBUG] start_transcription called. audio_file={audio_file}")
         self.status_bar.showMessage(AppLabels.STATUS_TRANSCRIBING)
         
         # 文字起こし中状態の表示
@@ -535,6 +538,7 @@ class MainWindow(QMainWindow):
         
         # バックグラウンドスレッドで文字起こし処理を実行
         if audio_file:
+            print("[DEBUG] start_transcription: starting transcription thread")
             transcription_thread = threading.Thread(
                 target=self.perform_transcription,
                 args=(audio_file, selected_language)
@@ -543,42 +547,51 @@ class MainWindow(QMainWindow):
             transcription_thread.start()
     
     def perform_transcription(self, audio_file, language=None):
-        """
-        バックグラウンドスレッドで文字起こし処理を実行する
-        
-        Parameters
-        ----------
-        audio_file : str
-            文字起こしを行う音声ファイルのパス
-        language : str, optional
-            文字起こしの言語コード
-        
-        WhisperTranscriberを使用して実際の文字起こし処理を行い、結果を
-        シグナルで通知します。エラー発生時も適切にハンドリングします。
-        """
+        print(f"[DEBUG] perform_transcription called. audio_file={audio_file}, language={language}")
         try:
+            # 一時ファイルへの参照を保持する（ガベージコレクション防止）
+            self._current_audio_file = audio_file
+            
+            # ファイルが存在することを確認
+            if not os.path.exists(audio_file):
+                err_msg = f"音声ファイルが見つかりません: {audio_file}"
+                print(err_msg)
+                self.transcription_complete.emit(AppLabels.ERROR_TRANSCRIPTION.format(err_msg))
+                return
+                
+            print(f"文字起こしを実行: {audio_file} (サイズ: {os.path.getsize(audio_file)} バイト)")
+            
+            # ローカルモードでffmpegの存在確認
+            if self.transcription_mode == TranscriptionMode.LOCAL.value:
+                try:
+                    import subprocess
+                    result = subprocess.run(["ffmpeg", "-version"], 
+                                          stdout=subprocess.PIPE, 
+                                          stderr=subprocess.PIPE, 
+                                          text=True)
+                    if result.returncode != 0:
+                        err_msg = "ffmpegがインストールされていないか、正しく設定されていません。"
+                        print(err_msg)
+                        self.transcription_complete.emit(AppLabels.ERROR_TRANSCRIPTION.format(err_msg))
+                        return
+                except Exception as e:
+                    print(f"ffmpeg確認エラー: {e}")
+            
             # 音声を文字起こし
-            result = self.whisper_transcriber.transcribe(audio_file, language)
+            result = self.transcription_manager.transcribe(audio_file, language)
+            print(f"[DEBUG] perform_transcription: emitting transcription_complete. result={result}")
             
             # 結果でシグナルを発信
             self.transcription_complete.emit(result)
             
         except Exception as e:
             # エラー処理
-            self.transcription_complete.emit(AppLabels.ERROR_TRANSCRIPTION.format(str(e)))
+            error_msg = str(e)
+            print(f"[DEBUG] perform_transcription: exception occurred: {error_msg}")
+            self.transcription_complete.emit(AppLabels.ERROR_TRANSCRIPTION.format(error_msg))
     
     def on_transcription_complete(self, text):
-        """
-        文字起こし完了時の処理
-        
-        Parameters
-        ----------
-        text : str
-            文字起こし結果のテキスト
-        
-        文字起こし結果をテキストウィジェットに表示し、設定に応じて
-        クリップボードにコピーします。また、完了サウンドを再生します。
-        """
+        print(f"[DEBUG] on_transcription_complete called. text={text}")
         # 文字起こし結果でテキストウィジェットを更新
         self.transcription_text.setPlainText(text)
         
@@ -631,16 +644,88 @@ class MainWindow(QMainWindow):
         """追加の接続設定"""
         # モデル選択が変更されたときのイベント
         self.model_combo.currentIndexChanged.connect(self.on_model_changed)
+        
+        # モード変更シグナルの接続
+        self.mode_combo.currentIndexChanged.connect(self.on_mode_changed)
     
     def on_model_changed(self, index):
-        """モデルが変更されたときの処理"""
-        model_id = self.model_combo.currentData()
-        if model_id and self.whisper_transcriber:
-            self.whisper_transcriber.set_model(model_id)
-            self.settings.setValue("model", model_id)
-            model_name = self.model_combo.currentText()
-            self.status_bar.showMessage(AppLabels.STATUS_MODEL_CHANGED.format(model_name), 2000)
-
+        """モデル選択変更時の処理"""
+        model_id = self.model_combo.itemData(index)
+        
+        # 現在のモードに応じたトランスクライバーにモデルを設定
+        self.transcription_manager.set_model(model_id)
+        
+        # 設定に保存（モードに応じて設定キーを変更）
+        setting_key = "local_model" if self.transcription_mode == TranscriptionMode.LOCAL.value else "model"
+        self.settings.setValue(setting_key, model_id)
+        
+        # UI表示の更新
+        model_name = self.model_combo.currentText()
+        self.status_bar.showMessage(AppLabels.STATUS_MODEL_CHANGED.format(model_name), 3000)
+        
+        # ローカルモードの場合、必要に応じてモデルを事前ロード
+        if self.transcription_mode == TranscriptionMode.LOCAL.value:
+            self.preload_local_model()
+    
+    def on_mode_changed(self, index):
+        """文字起こしモードが変更された時の処理"""
+        mode = self.mode_combo.itemData(index)
+        
+        # モードを設定
+        self.transcription_mode = mode
+        self.transcription_manager.set_mode(mode)
+        
+        # モードを設定に保存
+        self.settings.setValue("transcription_mode", mode)
+        
+        # モードに合わせてモデルコンボボックスを更新
+        self.update_model_combo()
+        
+        # UI表示の更新
+        mode_name = self.mode_combo.currentText()
+        self.status_bar.showMessage(AppLabels.STATUS_MODE_CHANGED.format(mode_name), 3000)
+        
+        # ローカルモードの場合、必要に応じてモデルを事前ロード
+        if mode == TranscriptionMode.LOCAL.value:
+            self.preload_local_model()
+    
+    def preload_local_model(self):
+        """ローカルWhisperモデルを事前にロード（バックグラウンド）"""
+        if self.transcription_mode != TranscriptionMode.LOCAL.value:
+            return
+            
+        # すでにロード中の場合は何もしない
+        if self.is_model_loading:
+            return
+            
+        self.is_model_loading = True
+        
+        # モデルロード中ダイアログを表示
+        self.loading_dialog = ModelLoadingDialog(self)
+        self.loading_dialog.show()
+        
+        # ローカルモデルの事前ロードを開始
+        self.transcription_manager.preload_local_model(self.on_model_loading_complete)
+    
+    def on_model_loading_complete(self, success, error=None):
+        """モデルロード完了時のコールバック（ワーカースレッド）"""
+        # シグナルでメインスレッドに通知
+        self.model_loading_complete_signal.emit(success, error)
+    
+    def _on_model_loading_complete_ui(self, success, error=None):
+        """モデルロード完了時のUI更新（メインスレッド）"""
+        self.is_model_loading = False
+        # ロードダイアログを閉じる
+        if hasattr(self, 'loading_dialog') and self.loading_dialog:
+            self.loading_dialog.accept()
+        # ロード失敗時のエラーメッセージ
+        if not success:
+            QMessageBox.warning(
+                self,
+                AppLabels.MODEL_LOAD_ERROR_TITLE,
+                f"{AppLabels.MODEL_LOAD_ERROR_MSG}: {error if error else 'Unknown error'}"
+            )
+    
     def setup_global_hotkey(self):
         """
         グローバルホットキーを設定する
@@ -921,3 +1006,29 @@ class MainWindow(QMainWindow):
             event.ignore()
         else:
             event.accept()
+
+    def update_model_combo(self):
+        """モードに応じてモデルコンボボックスを更新"""
+        # コンボボックスをクリア
+        self.model_combo.clear()
+        
+        # 現在のモードに応じたモデルリストを取得
+        models = self.transcription_manager.get_available_models()
+        
+        # モデルをコンボボックスに追加
+        for model in models:
+            self.model_combo.addItem(model["name"], model["id"])
+            # ツールチップを追加
+            self.model_combo.setItemData(
+                self.model_combo.count() - 1, 
+                model["description"], 
+                Qt.ItemDataRole.ToolTipRole
+            )
+        
+        # 前回選択したモデルの復元（モードに応じて設定キーを変更）
+        setting_key = "local_model" if self.transcription_mode == TranscriptionMode.LOCAL.value else "model"
+        last_model = self.settings.value(setting_key, "base" if self.transcription_mode == TranscriptionMode.LOCAL.value else AppConfig.DEFAULT_MODEL)
+        
+        index = self.model_combo.findData(last_model)
+        if index >= 0:
+            self.model_combo.setCurrentIndex(index)

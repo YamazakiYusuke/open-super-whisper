@@ -21,6 +21,13 @@ class AppLabels:
     TRANSCRIPTION_PLACEHOLDER = "ここに文字起こしが表示されます..."
     STATUS_READY = "準備完了"
     
+    # 文字起こしモード（新規追加）
+    TRANSCRIPTION_MODE = "文字起こしモード:"
+    MODE_API = "OpenAI API"
+    MODE_LOCAL = "ローカルモデル"
+    MODEL_LOAD_ERROR_TITLE = "モデルロードエラー"
+    MODEL_LOAD_ERROR_MSG = "Whisperモデルのロードに失敗しました"
+    
     # ツールバーアイテム
     API_KEY_SETTINGS = "APIキー設定"
     CUSTOM_VOCABULARY = "カスタム語彙"
@@ -53,6 +60,7 @@ class AppLabels:
     STATUS_VOCABULARY_ADDED = "{0}個の語彙を追加しました"
     STATUS_INSTRUCTIONS_SET = "{0}個のシステム指示を設定しました"
     STATUS_MODEL_CHANGED = "文字起こしモデルを「{0}」に変更しました"
+    STATUS_MODE_CHANGED = "文字起こしモードを「{0}」に変更しました"
     
     # APIキーダイアログ
     API_KEY_DIALOG_TITLE = "OpenAI APIキー"

@@ -20,14 +20,29 @@
 - 🔧 文字起こしの動作をコントロールするシステム指示機能
 - 📋 クリップボードに文字起こし内容をコピー
 - 🔄 リアルタイムの録音状態表示とタイマー
+- 💻 OpenAI APIとローカルWhisperモデルの両方をサポート
 
 ## 利用可能なモデル
 
-Open Super Whisperでは以下の文字起こしモデルを利用できます：
+Open Super Whisperでは2つの文字起こしモードを利用できます：
+
+### OpenAI APIモデル
 
 - **Whisper-1** - OpenAIのオリジナルオープンソースWhisperモデル
 - **GPT-4o Transcribe** - 高性能文字起こしモデルで、優れた精度を提供
 - **GPT-4o Mini Transcribe** - 軽量・高速な文字起こしモデルで、速度と精度のバランスに優れています
+
+### ローカルWhisperモデル
+
+APIキー不要！コンピュータ上で直接Whisperモデルを使用できます：
+
+- **Tiny (39MB)** - 最小・最速モデル、精度は低め
+- **Base (142MB)** - バランスの取れた小型モデル
+- **Small (466MB)** - バランスの取れた中型モデル
+- **Medium (1.5GB)** - 高精度な中型モデル
+- **Large (3GB)** - 最高精度のモデル
+
+ローカルモデルはシステムリソースを多く必要としますが、インターネット接続やAPI費用が不要になります。
 
 ## デモ
 
@@ -39,10 +54,42 @@ Windows用の最新の実行可能ファイル（.exe）は、[GitHub Releases�
 
 ## 必要条件
 
-- OpenAI APIキー
+- APIモード用：OpenAI APIキー
+- ローカルモード用：システムにインストールされたFFmpeg
 - WindowsまたはmacOSオペレーティングシステム
 
 ## インストール方法
+
+### ローカルWhisperモードの追加セットアップ
+
+ローカルWhisperモデルを使用するには、FFmpegをインストールする必要があります：
+
+#### Windows
+```bash
+# wingetを使用
+winget install -e --id Gyan.FFmpeg
+
+# または公式サイトからダウンロード
+# https://ffmpeg.org/download.html
+```
+
+#### macOS
+```bash
+# Homebrewを使用
+brew install ffmpeg
+```
+
+#### Linux
+```bash
+# Ubuntu/Debian
+sudo apt update && sudo apt install ffmpeg
+
+# Fedora
+sudo dnf install ffmpeg
+
+# Arch Linux
+sudo pacman -S ffmpeg
+```
 
 ### UV を使用した方法
 
@@ -128,12 +175,22 @@ python -m PyInstaller --onefile --windowed --icon assets/linux_pngs/icon_256.png
 
 ## 使用方法
 
-### APIキーの設定
+### 文字起こしモードの選択
 
-1. 初回起動時にOpenAI APIキーの入力が求められます
+1. 「文字起こしモード」ドロップダウンから「OpenAI API」または「ローカルモデル」を選択
+2. APIモードでは、OpenAI APIキーが必要です
+3. ローカルモードでは、様々なモデルサイズから選択可能
+   - 小さいモデルは高速ですが精度は低め
+   - 大きいモデルは精度が高いがメモリと処理能力をより多く必要とします
+4. ローカルモデルを初めて使用する場合、自動的にダウンロードされます
+
+### APIキーの設定（APIモード用）
+
+1. APIモードで初回起動時にOpenAI APIキーの入力が求められます
 2. APIキーをお持ちでない場合は、[OpenAIのウェブサイト](https://platform.openai.com/api-keys)から取得できます
 3. APIキーは今後の使用のために保存されます
 4. 後で変更する場合は、ツールバーの「APIキー設定」をクリックします
+5. ローカルモードでは不要です
 
 ### 音声の録音
 
@@ -165,9 +222,15 @@ python -m PyInstaller --onefile --windowed --icon assets/linux_pngs/icon_256.png
 
 ### モデル選択
 
-1. ドロップダウンメニューから使用するWhisperのモデルを選択できます
+1. ドロップダウンメニューから使用するモデルを選択できます
 2. 各モデルは精度と処理速度のバランスが異なります
 3. 選択したモデルは次回使用時も保持されます
+4. ローカルモードの場合、メモリ要件に注意：
+   - Tiny: 約39MB RAM
+   - Base: 約142MB RAM
+   - Small: 約466MB RAM
+   - Medium: 約1.5GB RAM
+   - Large: 約3GB RAM
 
 ### カスタム語彙
 
@@ -213,6 +276,6 @@ python main.py --minimized
 
 ## 謝辞
 
-- このアプリケーションは[OpenAIのWhisper API](https://platform.openai.com/docs/guides/speech-to-text)を音声認識に使用しています
+- このアプリケーションは[OpenAIのWhisper API](https://platform.openai.com/docs/guides/speech-to-text)および[Whisperオープンソースモデル](https://github.com/openai/whisper)を音声認識に使用しています
 - ユーザーインターフェースは[PyQt6](https://www.riverbankcomputing.com/software/pyqt/)で構築されています
 - [Super Whisper](https://superwhisper.com/)デスクトップアプリケーションに触発されています
