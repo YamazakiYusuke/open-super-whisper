@@ -19,6 +19,8 @@ class AppLabels:
     AUTO_DETECT = "自動検出"
     TRANSCRIPTION_TITLE = "文字起こし結果"
     TRANSCRIPTION_PLACEHOLDER = "ここに文字起こしが表示されます..."
+    ORIGINAL_TAB = "原文"
+    TRANSLATION_TAB = "翻訳"
     STATUS_READY = "準備完了"
     
     # 文字起こしモード（新規追加）
@@ -32,6 +34,7 @@ class AppLabels:
     API_KEY_SETTINGS = "APIキー設定"
     CUSTOM_VOCABULARY = "カスタム語彙"
     SYSTEM_INSTRUCTIONS = "システム指示"
+    TRANSLATION_SETTINGS = "翻訳設定"
     COPY_TO_CLIPBOARD = "クリップボードにコピー"
     HOTKEY_SETTINGS = "ホットキー設定"
     AUTO_COPY = "自動コピー"
@@ -43,9 +46,13 @@ class AppLabels:
     # ステータスメッセージ
     STATUS_RECORDING = "録音中..."
     STATUS_TRANSCRIBING = "文字起こし中..."
+    STATUS_TRANSLATING = "翻訳中..."
     STATUS_TRANSCRIBED = "文字起こしが完了しました"
     STATUS_TRANSCRIBED_COPIED = "文字起こしが完了し、クリップボードにコピーしました"
     STATUS_TRANSCRIBED_PASTED = "文字起こしが完了し、アクティブなフィールドにペーストしました"
+    STATUS_TRANSLATED = "翻訳が完了しました"
+    STATUS_TRANSLATED_COPIED = "翻訳が完了し、クリップボードにコピーしました"
+    STATUS_TRANSLATED_PASTED = "翻訳が完了し、アクティブなフィールドにペーストしました"
     STATUS_COPIED = "クリップボードにコピーしました"
     STATUS_API_KEY_SAVED = "APIキーが保存されました"
     STATUS_HOTKEY_SET = "ホットキーを {0} に設定しました"
@@ -61,6 +68,9 @@ class AppLabels:
     STATUS_INSTRUCTIONS_SET = "{0}個のシステム指示を設定しました"
     STATUS_MODEL_CHANGED = "文字起こしモデルを「{0}」に変更しました"
     STATUS_MODE_CHANGED = "文字起こしモードを「{0}」に変更しました"
+    STATUS_TRANSLATION_ENABLED = "翻訳機能を有効にしました"
+    STATUS_TRANSLATION_DISABLED = "翻訳機能を無効にしました"
+    STATUS_TRANSLATION_SETTINGS_SAVED = "翻訳設定を保存しました"
     
     # APIキーダイアログ
     API_KEY_DIALOG_TITLE = "OpenAI APIキー"

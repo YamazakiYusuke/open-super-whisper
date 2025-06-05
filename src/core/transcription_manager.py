@@ -1,6 +1,7 @@
 from enum import Enum
 from src.core.whisper_api import WhisperTranscriber
 from src.core.whisper_local import WhisperLocalTranscriber
+from src.core.translator import Translator
 
 class TranscriptionMode(Enum):
     """文字起こしモード"""
@@ -14,13 +15,20 @@ class TranscriptionManager:
         """初期化"""
         self.api_transcriber = None
         self.local_transcriber = None
+        self.translator = None
         self.mode = TranscriptionMode.API
         self.api_key = api_key
+        
+        # 翻訳設定
+        self.translation_enabled = False
+        self.target_language = "ja"
+        self.translation_model = "gpt-4o-mini"
         
         # APIトランスクライバーの初期化（APIキーがある場合）
         if api_key:
             try:
                 self.api_transcriber = WhisperTranscriber(api_key=api_key)
+                self.translator = Translator(api_key=api_key)
             except ValueError:
                 pass
         
@@ -32,9 +40,11 @@ class TranscriptionManager:
         self.api_key = api_key
         try:
             self.api_transcriber = WhisperTranscriber(api_key=api_key)
+            self.translator = Translator(api_key=api_key)
             return True
         except ValueError:
             self.api_transcriber = None
+            self.translator = None
             return False
     
     def set_mode(self, mode):
@@ -116,4 +126,59 @@ class TranscriptionManager:
     def preload_local_model(self, callback=None):
         """ローカルモデルを事前にロード（バックグラウンド）"""
         if self.local_transcriber:
-            self.local_transcriber.load_model(callback) 
+            self.local_transcriber.load_model(callback)
+    
+    def set_translation_enabled(self, enabled):
+        """翻訳機能の有効/無効を設定"""
+        self.translation_enabled = enabled
+    
+    def is_translation_enabled(self):
+        """翻訳機能が有効かどうかを取得"""
+        return self.translation_enabled
+    
+    def set_target_language(self, language):
+        """翻訳先言語を設定"""
+        self.target_language = language
+    
+    def get_target_language(self):
+        """翻訳先言語を取得"""
+        return self.target_language
+    
+    def set_translation_model(self, model):
+        """翻訳モデルを設定"""
+        self.translation_model = model
+    
+    def get_translation_model(self):
+        """翻訳モデルを取得"""
+        return self.translation_model
+    
+    def translate(self, text, source_language=None):
+        """テキストを翻訳"""
+        if not self.translation_enabled or not self.translator:
+            return None
+        
+        try:
+            return self.translator.translate(
+                text=text,
+                target_language=self.target_language,
+                source_language=source_language,
+                model=self.translation_model
+            )
+        except Exception as e:
+            print(f"Translation error: {e}")
+            return f"翻訳エラー: {str(e)}"
+    
+    def transcribe_and_translate(self, audio_file, language=None, response_format="text"):
+        """音声を文字起こしし、必要に応じて翻訳"""
+        # まず文字起こしを実行
+        transcription = self.transcribe(audio_file, language, response_format)
+        
+        # 翻訳が有効な場合は翻訳も実行
+        translation = None
+        if self.translation_enabled and transcription and not transcription.startswith("Error"):
+            translation = self.translate(transcription, language)
+        
+        return {
+            "transcription": transcription,
+            "translation": translation
+        } 

@@ -8,7 +8,7 @@ from PyQt6.QtWidgets import (
     QPushButton, QTextEdit, QLabel, QComboBox, QFileDialog,
     QCheckBox, QLineEdit, QListWidget, QMessageBox, QSplitter,
     QStatusBar, QToolBar, QDialog, QGridLayout, QFormLayout,
-    QSystemTrayIcon, QMenu, QStyle, QFrame
+    QSystemTrayIcon, QMenu, QStyle, QFrame, QTabWidget
 )
 from PyQt6.QtCore import Qt, QTimer, pyqtSignal, QSettings, QUrl
 from PyQt6.QtGui import QIcon, QAction
@@ -26,6 +26,7 @@ from src.gui.components.dialogs.vocabulary_dialog import VocabularyDialog
 from src.gui.components.dialogs.system_instructions_dialog import SystemInstructionsDialog
 from src.gui.components.dialogs.hotkey_dialog import HotkeyDialog
 from src.gui.components.dialogs.model_loading_dialog import ModelLoadingDialog
+from src.gui.components.dialogs.translation_dialog import TranslationDialog
 from src.gui.components.widgets.status_indicator import StatusIndicatorWindow
 from src.gui.utils.resource_helper import getResourcePath
 from src.gui.utils.keyboard_helper import KeyboardAutomation
@@ -39,7 +40,7 @@ class MainWindow(QMainWindow):
     """
     
     # カスタムシグナルの定義
-    transcription_complete = pyqtSignal(str)
+    transcription_complete = pyqtSignal(dict)  # 文字起こしと翻訳の結果を含む辞書
     recording_status_changed = pyqtSignal(bool)
     model_loading_complete_signal = pyqtSignal(bool, object)  # (success, error)
     
@@ -58,6 +59,11 @@ class MainWindow(QMainWindow):
         self.auto_copy = self.settings.value("auto_copy", AppConfig.DEFAULT_AUTO_COPY, type=bool)
         self.auto_paste = self.settings.value("auto_paste", AppConfig.DEFAULT_AUTO_PASTE, type=bool)
         
+        # 翻訳設定
+        self.translation_enabled = self.settings.value("translation_enabled", AppConfig.DEFAULT_TRANSLATION_ENABLED, type=bool)
+        self.target_language = self.settings.value("target_language", AppConfig.DEFAULT_TARGET_LANGUAGE)
+        self.translation_model = self.settings.value("translation_model", AppConfig.DEFAULT_TRANSLATION_MODEL)
+        
         # ホットキーマネージャーの初期化
         self.hotkey_manager = HotkeyManager()
         
@@ -67,6 +73,11 @@ class MainWindow(QMainWindow):
         # 文字起こし管理クラスの初期化（API→TranscriptionManager）
         self.transcription_manager = TranscriptionManager(api_key=self.api_key)
         self.transcription_manager.set_mode(self.transcription_mode)
+        
+        # 翻訳設定を適用
+        self.transcription_manager.set_translation_enabled(self.translation_enabled)
+        self.transcription_manager.set_target_language(self.target_language)
+        self.transcription_manager.set_translation_model(self.translation_model)
         
         # モデルロード中かどうかのフラグ（新規追加）
         self.is_model_loading = False
@@ -242,14 +253,30 @@ class MainWindow(QMainWindow):
         title_label.setStyleSheet(AppStyles.TRANSCRIPTION_TITLE_STYLE)
         transcription_layout.addWidget(title_label)
         
-        # 文字起こし出力
+        # タブウィジェット
+        self.tab_widget = QTabWidget()
+        self.tab_widget.setMinimumHeight(250)
+        
+        # 文字起こし出力（原文タブ）
         self.transcription_text = QTextEdit()
         self.transcription_text.setPlaceholderText(AppLabels.TRANSCRIPTION_PLACEHOLDER)
         self.transcription_text.setReadOnly(False)  # 編集できるように設定
-        self.transcription_text.setMinimumHeight(250)
         self.transcription_text.setStyleSheet(AppStyles.TRANSCRIPTION_TEXT_STYLE)
         
-        transcription_layout.addWidget(self.transcription_text)
+        # 翻訳出力タブ
+        self.translation_text = QTextEdit()
+        self.translation_text.setPlaceholderText("ここに翻訳が表示されます...")
+        self.translation_text.setReadOnly(False)  # 編集できるように設定
+        self.translation_text.setStyleSheet(AppStyles.TRANSCRIPTION_TEXT_STYLE)
+        
+        # タブを追加
+        self.tab_widget.addTab(self.transcription_text, AppLabels.ORIGINAL_TAB)
+        self.tab_widget.addTab(self.translation_text, AppLabels.TRANSLATION_TAB)
+        
+        # 翻訳タブは最初は無効化
+        self.tab_widget.setTabEnabled(1, self.translation_enabled)
+        
+        transcription_layout.addWidget(self.tab_widget)
         main_layout.addWidget(transcription_panel, 1)
         
         # ステータスバー
@@ -301,6 +328,11 @@ class MainWindow(QMainWindow):
         system_instructions_action = QAction(AppLabels.SYSTEM_INSTRUCTIONS, self)
         system_instructions_action.triggered.connect(self.show_system_instructions_dialog)
         toolbar.addAction(system_instructions_action)
+        
+        # 翻訳設定アクション
+        translation_action = QAction(AppLabels.TRANSLATION_SETTINGS, self)
+        translation_action.triggered.connect(self.show_translation_dialog)
+        toolbar.addAction(translation_action)
         
         # クリップボードにコピーアクション
         copy_action = QAction(AppLabels.COPY_TO_CLIPBOARD, self)
@@ -404,6 +436,40 @@ class MainWindow(QMainWindow):
             self.transcription_manager.clear_system_instructions()
             self.transcription_manager.add_system_instruction(new_instructions)
             self.status_bar.showMessage(AppLabels.STATUS_INSTRUCTIONS_SET.format(len(new_instructions)), 3000)
+    
+    def show_translation_dialog(self):
+        """翻訳設定を管理するダイアログを表示"""
+        current_settings = {
+            "translation_enabled": self.translation_enabled,
+            "target_language": self.target_language,
+            "translation_model": self.translation_model,
+        }
+        
+        dialog = TranslationDialog(self, current_settings)
+        
+        if dialog.exec():
+            settings = dialog.get_settings()
+            
+            # 設定を更新
+            self.translation_enabled = settings["translation_enabled"]
+            self.target_language = settings["target_language"]
+            self.translation_model = settings["translation_model"]
+            
+            # 設定を保存
+            self.settings.setValue("translation_enabled", self.translation_enabled)
+            self.settings.setValue("target_language", self.target_language)
+            self.settings.setValue("translation_model", self.translation_model)
+            
+            # TranscriptionManagerに設定を適用
+            self.transcription_manager.set_translation_enabled(self.translation_enabled)
+            self.transcription_manager.set_target_language(self.target_language)
+            self.transcription_manager.set_translation_model(self.translation_model)
+            
+            # タブの有効状態を更新
+            self.tab_widget.setTabEnabled(1, self.translation_enabled)
+            
+            # ステータスメッセージ
+            self.status_bar.showMessage(AppLabels.STATUS_TRANSLATION_SETTINGS_SAVED, 3000)
     
     def toggle_recording(self):
         """
@@ -549,7 +615,10 @@ class MainWindow(QMainWindow):
             # ファイルが存在することを確認
             if not os.path.exists(audio_file):
                 err_msg = f"音声ファイルが見つかりません: {audio_file}"
-                self.transcription_complete.emit(AppLabels.ERROR_TRANSCRIPTION.format(err_msg))
+                self.transcription_complete.emit({
+                    "transcription": AppLabels.ERROR_TRANSCRIPTION.format(err_msg),
+                    "translation": None
+                })
                 return
                 
             print(f"文字起こしを実行: {audio_file} (サイズ: {os.path.getsize(audio_file)} バイト)")
@@ -564,13 +633,20 @@ class MainWindow(QMainWindow):
                                           text=True)
                     if result.returncode != 0:
                         err_msg = "ffmpegがインストールされていないか、正しく設定されていません。"
-                        self.transcription_complete.emit(AppLabels.ERROR_TRANSCRIPTION.format(err_msg))
+                        self.transcription_complete.emit({
+                            "transcription": AppLabels.ERROR_TRANSCRIPTION.format(err_msg),
+                            "translation": None
+                        })
                         return
                 except Exception as e:
                     print(f"ffmpeg確認エラー: {e}")
             
-            # 音声を文字起こし
-            result = self.transcription_manager.transcribe(audio_file, language)
+            # 音声を文字起こし（必要に応じて翻訳も実行）
+            if self.translation_enabled:
+                # ステータスを翻訳中に更新
+                QTimer.singleShot(100, lambda: self.status_bar.showMessage(AppLabels.STATUS_TRANSLATING))
+                
+            result = self.transcription_manager.transcribe_and_translate(audio_file, language)
             
             # 結果でシグナルを発信
             self.transcription_complete.emit(result)
@@ -578,11 +654,27 @@ class MainWindow(QMainWindow):
         except Exception as e:
             # エラー処理
             error_msg = str(e)
-            self.transcription_complete.emit(AppLabels.ERROR_TRANSCRIPTION.format(error_msg))
+            self.transcription_complete.emit({
+                "transcription": AppLabels.ERROR_TRANSCRIPTION.format(error_msg),
+                "translation": None
+            })
     
-    def on_transcription_complete(self, text):
+    def on_transcription_complete(self, result):
+        # 結果を展開
+        transcription = result.get("transcription", "")
+        translation = result.get("translation", None)
+        
         # 文字起こし結果でテキストウィジェットを更新
-        self.transcription_text.setPlainText(text)
+        self.transcription_text.setPlainText(transcription)
+        
+        # 翻訳結果がある場合は翻訳タブを更新
+        if translation:
+            self.translation_text.setPlainText(translation)
+            self.tab_widget.setTabEnabled(1, True)
+            # 翻訳が完了したら翻訳タブに切り替え
+            self.tab_widget.setCurrentIndex(1)
+        else:
+            self.tab_widget.setTabEnabled(1, self.translation_enabled)
         
         # 使用したモデル名を取得
         model_id = self.model_combo.currentData()
@@ -593,37 +685,60 @@ class MainWindow(QMainWindow):
             self.status_indicator_window.set_mode(StatusIndicatorWindow.MODE_TRANSCRIBED)
             self.status_indicator_window.show()
         
-        # 有効な場合は自動でクリップボードにコピー
-        if self.auto_copy and text:
-            QApplication.clipboard().setText(text)
+        # 自動コピー・ペーストの処理
+        if self.auto_copy:
+            # 翻訳が有効で翻訳結果がある場合は翻訳を、そうでなければ文字起こしをコピー
+            text_to_copy = translation if (self.translation_enabled and translation) else transcription
             
-            # 自動ペーストが有効なら、クリップボードの内容をペースト
-            if self.auto_paste:
-                # キーボードオートメーションでペースト操作を実行
-                try:
-                    keyboard_automation = KeyboardAutomation.get_instance()
-                    keyboard_automation.paste_clipboard_content()
-                    self.status_bar.showMessage(AppLabels.STATUS_TRANSCRIBED_PASTED + f" (使用モデル: {model_name})", 3000)
-                except Exception as e:
-                    print(f"自動ペースト中にエラーが発生しました: {str(e)}")
-                    self.status_bar.showMessage(AppLabels.STATUS_TRANSCRIBED_COPIED + f" (使用モデル: {model_name})", 3000)
-            else:
-                self.status_bar.showMessage(AppLabels.STATUS_TRANSCRIBED_COPIED + f" (使用モデル: {model_name})", 3000)
+            if text_to_copy:
+                QApplication.clipboard().setText(text_to_copy)
+                
+                # 自動ペーストが有効なら、クリップボードの内容をペースト
+                if self.auto_paste:
+                    # キーボードオートメーションでペースト操作を実行
+                    try:
+                        keyboard_automation = KeyboardAutomation.get_instance()
+                        keyboard_automation.paste_clipboard_content()
+                        
+                        if translation and self.translation_enabled:
+                            self.status_bar.showMessage(AppLabels.STATUS_TRANSLATED_PASTED + f" (使用モデル: {model_name})", 3000)
+                        else:
+                            self.status_bar.showMessage(AppLabels.STATUS_TRANSCRIBED_PASTED + f" (使用モデル: {model_name})", 3000)
+                    except Exception as e:
+                        print(f"自動ペースト中にエラーが発生しました: {str(e)}")
+                        
+                        if translation and self.translation_enabled:
+                            self.status_bar.showMessage(AppLabels.STATUS_TRANSLATED_COPIED + f" (使用モデル: {model_name})", 3000)
+                        else:
+                            self.status_bar.showMessage(AppLabels.STATUS_TRANSCRIBED_COPIED + f" (使用モデル: {model_name})", 3000)
+                else:
+                    if translation and self.translation_enabled:
+                        self.status_bar.showMessage(AppLabels.STATUS_TRANSLATED_COPIED + f" (使用モデル: {model_name})", 3000)
+                    else:
+                        self.status_bar.showMessage(AppLabels.STATUS_TRANSCRIBED_COPIED + f" (使用モデル: {model_name})", 3000)
         else:
             # 自動コピーが無効の場合でもモデル情報でステータスを更新
-            self.status_bar.showMessage(AppLabels.STATUS_TRANSCRIBED + f" (使用モデル: {model_name})", 3000)
+            if translation and self.translation_enabled:
+                self.status_bar.showMessage(AppLabels.STATUS_TRANSLATED + f" (使用モデル: {model_name})", 3000)
+            else:
+                self.status_bar.showMessage(AppLabels.STATUS_TRANSCRIBED + f" (使用モデル: {model_name})", 3000)
         
         # 完了音を再生
         self.play_complete_sound()
     
     def copy_to_clipboard(self):
         """
-        文字起こし結果をクリップボードにコピーする
+        現在のタブの内容をクリップボードにコピーする
         
-        現在のテキストウィジェットの内容をクリップボードにコピーし、
+        現在アクティブなタブのテキストウィジェットの内容をクリップボードにコピーし、
         ユーザーに通知します。
         """
-        text = self.transcription_text.toPlainText()
+        current_index = self.tab_widget.currentIndex()
+        if current_index == 0:
+            text = self.transcription_text.toPlainText()
+        else:
+            text = self.translation_text.toPlainText()
+        
         QApplication.clipboard().setText(text)
         self.status_bar.showMessage(AppLabels.STATUS_COPIED, 2000)
         

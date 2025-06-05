@@ -28,6 +28,11 @@ class AppConfig:
     # 言語設定
     DEFAULT_LANGUAGE = ""  # 空文字列は自動検出を意味する
     
+    # 翻訳設定
+    DEFAULT_TRANSLATION_ENABLED = False
+    DEFAULT_TARGET_LANGUAGE = "ja"
+    DEFAULT_TRANSLATION_MODEL = "gpt-4o-mini"
+    
     # サウンドファイルパス
     START_SOUND_PATH = "assets/start_sound.wav"
     STOP_SOUND_PATH = "assets/stop_sound.wav"
