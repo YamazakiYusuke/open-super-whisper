@@ -1,829 +1,285 @@
 """
-アプリケーションのスタイル定義モジュール
+Clean Styles Module - Modern UI without gradients
 
-このモジュールには、アプリケーションのUI全体で使用されるスタイルシートが含まれています。
-スタイルの一元管理により、見た目の一貫性とメンテナンスが容易になります。
+This module provides a clean, modern design with clear status indicators
+and no gradient backgrounds for optimal performance and clarity.
 """
 
 class AppStyles:
-    """アプリケーション全体のスタイルシートを管理するクラス"""
+    """Clean application styles manager"""
 
-    # 共通のカラーパレット
-    COLOR_PRIMARY = "#5B7FDE"
-    COLOR_PRIMARY_HOVER = "#4968C2"
-    COLOR_PRIMARY_PRESSED = "#3A5CB8"
-    COLOR_DANGER = "#E05252"
-    COLOR_DANGER_HOVER = "#D03A3A"
-    COLOR_DANGER_PRESSED = "#C02E2E"
-    COLOR_BACKGROUND = "#F8F9FC"
-    COLOR_SURFACE = "#FFFFFF"
-    COLOR_BORDER = "#E2E6EC"
-    COLOR_BORDER_HOVER = "#C5CFDC"
-    COLOR_TEXT_PRIMARY = "#333333"
-    COLOR_TEXT_SECONDARY = "#555555"
-    COLOR_SELECTION = "#EBF0FF"
+    # Modern Color Palette - Clean & Clear
+    COLOR_PRIMARY = "#00D9FF"  # Cyan
+    COLOR_RECORDING = "#FFD23F"  # Gold for recording
+    COLOR_TRANSCRIBING = "#00D9FF"  # Cyan for transcribing
+    COLOR_TRANSLATING = "#B47EDE"  # Purple for translating
+    COLOR_SUCCESS = "#33FF88"  # Green for success
 
-    # ダークテーマ用カラーパレット
-    COLOR_BACKGROUND_DARK = "#232629"
-    COLOR_SURFACE_DARK = "#2C2F33"
-    COLOR_BORDER_DARK = "#44474A"
-    COLOR_TEXT_PRIMARY_DARK = "#F3F3F3"
-    COLOR_TEXT_SECONDARY_DARK = "#BBBBBB"
-    COLOR_SELECTION_DARK = "#3A5CB8"
-
-    # APIキーダイアログのスタイル
-    API_KEY_DIALOG_STYLE = """
-        QDialog {
-            background-color: #F8F9FC;
-        }
-        
-        QLineEdit {
-            border: 1px solid #E2E6EC;
-            border-radius: 4px;
-            padding: 8px;
-            background-color: white;
-        }
-        
-        QLineEdit:focus {
-            border-color: #5B7FDE;
-        }
-        
-        QPushButton {
-            background-color: #5B7FDE;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            padding: 8px 16px;
-            font-weight: bold;
-        }
-        
-        QPushButton:hover {
-            background-color: #4968C2;
-        }
-        
-        QPushButton:pressed {
-            background-color: #3A5CB8;
-        }
-        
-        QPushButton#cancelButton {
-            background-color: #F2F4F8;
-            color: #333333;
-            border: 1px solid #E2E6EC;
-        }
-        
-        QPushButton#cancelButton:hover {
-            background-color: #E8ECF2;
-        }
-        
-        QPushButton#cancelButton:pressed {
-            background-color: #D8DDE8;
-        }
-    """
-
-    # APIキー情報ラベルのスタイル
-    API_KEY_INFO_LABEL_STYLE = "color: #555555; padding: 5px 0;"
-
-    # カスタム語彙ダイアログのスタイル
-    VOCABULARY_DIALOG_STYLE = """
-        QDialog {
-            background-color: #F8F9FC;
-        }
-        
-        QListWidget {
-            border: 1px solid #E2E6EC;
-            border-radius: 4px;
-            background-color: white;
-            padding: 4px;
-        }
-        
-        QListWidget::item {
-            padding: 6px;
-            border-bottom: 1px solid #F2F4F8;
-        }
-        
-        QListWidget::item:selected {
-            background-color: #EBF0FF;
-            color: #5B7FDE;
-            border-radius: 2px;
-        }
-        
-        QLineEdit {
-            border: 1px solid #E2E6EC;
-            border-radius: 4px;
-            padding: 8px 12px;
-            background-color: white;
+    # Main Window Style
+    MAIN_WINDOW_STYLE = """
+        * {
+            font-family: "Segoe UI", Arial, sans-serif;
             font-size: 13px;
-            min-height: 20px;
+            color: #FFFFFF;
         }
         
-        QLineEdit:focus {
-            border-color: #5B7FDE;
+        QMainWindow {
+            background-color: rgba(20, 25, 40, 0.95);
+            border: 2px solid rgba(0, 217, 255, 0.3);
+            border-radius: 20px;
+        }
+        
+        QToolBar {
+            background-color: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            spacing: 8px;
+            padding: 8px 15px;
+            font-size: 13px;
+            margin: 10px;
         }
         
         QPushButton {
-            background-color: #5B7FDE;
+            background-color: rgba(0, 217, 255, 0.2);
             color: white;
-            border: none;
-            border-radius: 4px;
-            padding: 8px 16px;
+            border: 2px solid #00D9FF;
+            border-radius: 15px;
+            padding: 12px 20px;
             font-weight: bold;
-            min-height: 20px;
+            font-size: 14px;
         }
         
         QPushButton:hover {
-            background-color: #4968C2;
+            background-color: rgba(0, 217, 255, 0.4);
+            border: 2px solid #00B8E6;
         }
         
-        QPushButton:pressed {
-            background-color: #3A5CB8;
+        QTextEdit {
+            background-color: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 15px;
+            font-size: 14px;
+            color: #FFFFFF;
+            selection-background-color: rgba(0, 217, 255, 0.3);
         }
         
-        QPushButton.secondary {
-            background-color: #F2F4F8;
-            color: #333333;
-            border: 1px solid #E2E6EC;
+        QTextEdit:focus {
+            border: 2px solid #00D9FF;
         }
         
-        QPushButton.secondary:hover {
-            background-color: #E8ECF2;
+        QComboBox {
+            background-color: rgba(255, 255, 255, 0.08);
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            padding: 8px 15px;
+            min-width: 150px;
+            color: #FFFFFF;
         }
         
-        QPushButton.secondary:pressed {
-            background-color: #D8DDE8;
-        }
-        
-        QPushButton.danger {
-            background-color: #E05252;
-        }
-        
-        QPushButton.danger:hover {
-            background-color: #D03A3A;
-        }
-        
-        QPushButton.danger:pressed {
-            background-color: #C02E2E;
+        QComboBox:hover {
+            border: 2px solid #00D9FF;
+            background-color: rgba(255, 255, 255, 0.12);
         }
         
         QLabel {
-            color: #333333;
+            color: #FFFFFF;
             font-size: 13px;
-        }
-        
-        QLabel.sectionTitle {
-            font-weight: bold;
-            font-size: 14px;
-            color: #324275;
-            padding: 5px 0;
         }
     """
 
-    # システム指示ダイアログのスタイル
-    SYSTEM_INSTRUCTIONS_DIALOG_STYLE = """
-        QDialog {
-            background-color: #F8F9FC;
+    # Control Panel Style
+    CONTROL_PANEL_STYLE = """
+        #controlPanel {
+            background-color: rgba(255, 255, 255, 0.08);
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            border-radius: 25px;
         }
-        
-        QListWidget {
-            border: 1px solid #E2E6EC;
-            border-radius: 4px;
-            background-color: white;
-            padding: 4px;
-        }
-        
-        QListWidget::item {
-            padding: 6px;
-            border-bottom: 1px solid #F2F4F8;
-        }
-        
-        QListWidget::item:selected {
-            background-color: #EBF0FF;
-            color: #5B7FDE;
-            border-radius: 2px;
-        }
-        
-        QLineEdit {
-            border: 1px solid #E2E6EC;
-            border-radius: 4px;
-            padding: 8px 12px;
-            background-color: white;
-            font-size: 13px;
-            min-height: 20px;
-        }
-        
-        QLineEdit:focus {
-            border-color: #5B7FDE;
-        }
-        
-        QPushButton {
-            background-color: #5B7FDE;
+    """
+
+    # Record Button Styles
+    RECORD_BUTTON_STYLE = """
+        #recordButton {
+            background-color: rgba(0, 217, 255, 0.2);
             color: white;
-            border: none;
-            border-radius: 4px;
-            padding: 8px 16px;
+            border: 3px solid #00D9FF;
+            border-radius: 25px;
+            padding: 15px 30px;
             font-weight: bold;
-            min-height: 20px;
+            font-size: 16px;
         }
         
-        QPushButton:hover {
-            background-color: #4968C2;
-        }
-        
-        QPushButton:pressed {
-            background-color: #3A5CB8;
-        }
-        
-        QPushButton.secondary {
-            background-color: #F2F4F8;
-            color: #333333;
-            border: 1px solid #E2E6EC;
-        }
-        
-        QPushButton.secondary:hover {
-            background-color: #E8ECF2;
-        }
-        
-        QPushButton.secondary:pressed {
-            background-color: #D8DDE8;
-        }
-        
-        QPushButton.danger {
-            background-color: #E05252;
-        }
-        
-        QPushButton.danger:hover {
-            background-color: #D03A3A;
-        }
-        
-        QPushButton.danger:pressed {
-            background-color: #C02E2E;
-        }
-        
-        QLabel {
-            color: #333333;
-            font-size: 13px;
-        }
-        
-        QLabel.sectionTitle {
-            font-weight: bold;
-            font-size: 14px;
-            color: #324275;
-            padding: 5px 0;
-        }
-        
-        QLabel.info {
-            color: #555555;
-            padding-bottom: 10px;
-            line-height: 1.4;
+        #recordButton:hover {
+            background-color: rgba(0, 217, 255, 0.4);
+            border: 3px solid #00B8E6;
         }
     """
 
-    # 状態表示インジケーターウィンドウのスタイル
+    RECORD_BUTTON_RECORDING_STYLE = """
+        #recordButton {
+            background-color: rgba(255, 210, 63, 0.3);
+            color: white;
+            border: 3px solid #FFD23F;
+            border-radius: 25px;
+            padding: 15px 30px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+    """
+
+    # Transcription Panel Style
+    TRANSCRIPTION_PANEL_STYLE = """
+        #transcriptionPanel {
+            background-color: rgba(255, 255, 255, 0.06);
+            border: 2px solid rgba(255, 255, 255, 0.12);
+            border-radius: 25px;
+        }
+    """
+
+    # Transcription Title Style
+    TRANSCRIPTION_TITLE_STYLE = """
+        color: #00D9FF;
+        font-weight: bold;
+        font-size: 18px;
+        font-family: "Segoe UI", sans-serif;
+        border-bottom: 2px solid #00D9FF;
+        padding-bottom: 12px;
+        margin-bottom: 10px;
+    """
+
+    # Transcription Text Style
+    TRANSCRIPTION_TEXT_STYLE = """
+        border: none;
+        background-color: rgba(255, 255, 255, 0.03);
+        color: #FFFFFF;
+        font-size: 15px;
+        font-family: "Consolas", monospace;
+        line-height: 1.8;
+        padding: 20px;
+        border-radius: 15px;
+        selection-background-color: rgba(0, 217, 255, 0.3);
+    """
+
+    # Status Indicator Style
     STATUS_INDICATOR_STYLE = """
         #statusFrame {
-            border-radius: 12px;
-            background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                     stop:0 rgba(90, 100, 120, 220), 
-                                     stop:1 rgba(70, 78, 94, 220));
-            border: 1px solid rgba(255, 255, 255, 60);
+            border-radius: 20px;
+            background-color: rgba(30, 35, 50, 0.95);
+            border: 2px solid rgba(255, 255, 255, 0.3);
         }
         
         #statusLabel {
             color: white;
             font-weight: bold;
-            font-size: 15px;
-            font-family: "Segoe UI", Arial, sans-serif;
-            margin-top: 2px;
-            padding: 2px;
+            font-size: 16px;
+            font-family: "Segoe UI", sans-serif;
+            margin-top: 3px;
+            padding: 3px;
         }
         
         #timerLabel {
-            color: white;
-            font-size: 20px;
-            font-family: "Segoe UI", Arial, sans-serif;
-            font-weight: 500;
-            padding: 2px;
+            color: #FFD23F;
+            font-size: 22px;
+            font-family: "Consolas", monospace;
+            font-weight: 600;
+            padding: 3px;
+        }
+        
+        #statusIcon {
+            font-size: 24px;
+            margin: 5px;
         }
     """
 
-    # 録音モードのインジケーターフレームスタイル
+    # Recording State (Gold)
     RECORDING_INDICATOR_FRAME_STYLE = """
         #statusFrame {
-            border-radius: 12px;
-            background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                    stop:0 rgba(224, 82, 82, 220), 
-                                    stop:1 rgba(200, 60, 60, 220));
-            border: 1px solid rgba(255, 255, 255, 60);
+            border-radius: 20px;
+            background-color: rgba(255, 210, 63, 0.2);
+            border: 2px solid #FFD23F;
         }
     """
-
-    # 文字起こしモードのインジケーターフレームスタイル
+    
+    # Transcribing State (Cyan)
     TRANSCRIBING_INDICATOR_FRAME_STYLE = """
         #statusFrame {
-            border-radius: 12px;
-            background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                    stop:0 rgba(120, 120, 120, 220), 
-                                    stop:1 rgba(90, 90, 90, 220));
-            border: 1px solid rgba(255, 255, 255, 60);
+            border-radius: 20px;
+            background-color: rgba(0, 217, 255, 0.2);
+            border: 2px solid #00D9FF;
         }
     """
-
-    # 文字起こし完了モードのインジケーターフレームスタイル
+    
+    # Translating State (Purple)
+    TRANSLATING_INDICATOR_FRAME_STYLE = """
+        #statusFrame {
+            border-radius: 20px;
+            background-color: rgba(180, 126, 222, 0.2);
+            border: 2px solid #B47EDE;
+        }
+    """
+    
+    # Success/Completed State (Green)
     TRANSCRIBED_INDICATOR_FRAME_STYLE = """
         #statusFrame {
-            border-radius: 12px;
-            background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                    stop:0 rgba(65, 105, 225, 220), 
-                                    stop:1 rgba(45, 85, 205, 220));
-            border: 1px solid rgba(255, 255, 255, 60);
+            border-radius: 20px;
+            background-color: rgba(51, 255, 136, 0.2);
+            border: 2px solid #33FF88;
         }
     """
 
-    # ホットキーダイアログのスタイル
-    HOTKEY_DIALOG_STYLE = """
+    # Dialog Style
+    API_KEY_DIALOG_STYLE = """
         QDialog {
-            background-color: #F8F9FC;
+            background-color: rgba(20, 25, 40, 0.95);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
         }
         
         QLineEdit {
-            border: 1px solid #E2E6EC;
-            border-radius: 4px;
-            padding: 8px;
-            background-color: white;
-            font-size: 13px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 12px 15px;
+            color: #FFFFFF;
+            font-size: 14px;
         }
         
         QLineEdit:focus {
-            border-color: #5B7FDE;
+            border: 2px solid #00D9FF;
         }
         
         QPushButton {
-            background-color: #5B7FDE;
+            background-color: rgba(0, 217, 255, 0.2);
             color: white;
-            border: none;
-            border-radius: 4px;
-            padding: 8px 16px;
+            border: 2px solid #00D9FF;
+            border-radius: 15px;
+            padding: 12px 20px;
             font-weight: bold;
-        }
-        
-        QPushButton:hover {
-            background-color: #4968C2;
-        }
-        
-        QPushButton:pressed {
-            background-color: #3A5CB8;
-        }
-        
-        QPushButton#cancelButton {
-            background-color: #F2F4F8;
-            color: #333333;
-            border: 1px solid #E2E6EC;
-        }
-        
-        QPushButton#cancelButton:hover {
-            background-color: #E8ECF2;
-        }
-        
-        QPushButton#cancelButton:pressed {
-            background-color: #D8DDE8;
-        }
-    """
-
-    # メインウィンドウのスタイル
-    MAIN_WINDOW_STYLE = """
-        * {
-            font-family: "Segoe UI", Arial, sans-serif;
-            font-size: 13px;
-        }
-        
-        QMainWindow {
-            background-color: #F8F9FC;
-        }
-        
-        QToolBar {
-            background-color: #FFFFFF;
-            border-bottom: 1px solid #E8ECF2;
-            spacing: 5px;
-            padding: 5px;
-            font-size: 13px;
-        }
-        
-        QToolBar QAction {
-            padding: 4px 8px;
-        }
-        
-        /* メニュー選択時の色を変更 */
-        QMenu {
-            background-color: #FFFFFF;
-            border: 1px solid #E2E6EC;
-            padding: 2px;
-        }
-        
-        QMenu::item:selected {
-            background-color: #4968C2;
-            color: white;
-            border-radius: 3px;
-            padding: 3px 6px;
-        }
-        
-        QMenu::item {
-            padding: 3px 6px;
-            margin: 1px 3px;
-        }
-        
-        QMenu::separator {
-            height: 1px;
-            background-color: #E2E6EC;
-            margin: 4px 8px;
-        }
-        
-        /* ツールバーの選択色 */
-        QToolBar QAction:checked {
-            background-color: #5B7FDE;
-            color: white;
-            border-radius: 3px;
-        }
-        
-        QToolBar QAction:hover {
-            background-color: #EBF0FF;
-            border-radius: 3px;
-        }
-        
-        /* ツールバーのボタン */
-        QToolButton {
-            padding: 5px 8px;
-            border-radius: 3px;
-            margin: 1px;
-        }
-        
-        QToolButton:checked {
-            background-color: #5B7FDE;
-            color: white;
-            font-weight: bold;
-        }
-        
-        QToolButton:hover {
-            background-color: #EBF0FF;
-        }
-        
-        QToolButton:checked:hover {
-            background-color: #4968C2;
-        }
-        
-        QToolButton:pressed {
-            background-color: #4968C2;
-            color: white;
-        }
-        
-        QPushButton {
-            background-color: #5B7FDE;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            padding: 8px 16px;
-            font-weight: bold;
-            font-size: 13px;
-        }
-        
-        QPushButton:hover {
-            background-color: #4968C2;
-        }
-        
-        QPushButton:pressed {
-            background-color: #3A5CB8;
-        }
-        
-        QTextEdit {
-            border: 1px solid #E2E6EC;
-            border-radius: 4px;
-            background-color: white;
-            padding: 8px;
             font-size: 14px;
         }
         
-        QComboBox {
-            border: 1px solid #E2E6EC;
-            border-radius: 4px;
-            padding: 6px 12px;
-            background-color: white;
-            min-width: 150px;
-        }
-        
-        QComboBox:hover {
-            border-color: #C5CFDC;
-        }
-        
-        QComboBox::drop-down {
-            subcontrol-origin: padding;
-            subcontrol-position: center right;
-            width: 20px;
-            border-left: none;
-        }
-        
-        /* コンボボックスのドロップダウンメニュー */
-        QComboBox QAbstractItemView {
-            background-color: white;
-            border: 1px solid #E2E6EC;
-            selection-background-color: #5B7FDE;
-            selection-color: white;
-        }
-        
-        QStatusBar {
-            background-color: #FFFFFF;
-            color: #555555;
-            border-top: 1px solid #E8ECF2;
-            font-size: 13px;
+        QPushButton:hover {
+            background-color: rgba(0, 217, 255, 0.4);
         }
         
         QLabel {
-            color: #333333;
-            font-size: 13px;
-        }
-    """
-
-    # ダークテーマ用メインウィンドウスタイル
-    MAIN_WINDOW_STYLE_DARK = """
-        * {
-            font-family: \"Segoe UI\", Arial, sans-serif;
-            font-size: 13px;
-        }
-        QMainWindow {
-            background-color: #232629;
-        }
-        QToolBar {
-            background-color: #2C2F33;
-            border-bottom: 1px solid #44474A;
-            spacing: 5px;
-            padding: 5px;
-            font-size: 13px;
-        }
-        QToolBar QAction {
-            padding: 4px 8px;
-        }
-        QMenu {
-            background-color: #2C2F33;
-            border: 1px solid #44474A;
-            padding: 2px;
-        }
-        QMenu::item:selected {
-            background-color: #3A5CB8;
-            color: white;
-            border-radius: 3px;
-            padding: 3px 6px;
-        }
-        QMenu::item {
-            padding: 3px 6px;
-            margin: 1px 3px;
-        }
-        QMenu::separator {
-            height: 1px;
-            background-color: #44474A;
-            margin: 4px 8px;
-        }
-        QToolBar QAction:checked {
-            background-color: #3A5CB8;
-            color: white;
-            border-radius: 3px;
-        }
-        QToolBar QAction:hover {
-            background-color: #3A5CB8;
-            border-radius: 3px;
-        }
-        QToolButton {
-            padding: 5px 8px;
-            border-radius: 3px;
-            margin: 1px;
-        }
-        QToolButton:checked {
-            background-color: #3A5CB8;
-            color: white;
-            font-weight: bold;
-        }
-        QToolButton:hover {
-            background-color: #3A5CB8;
-        }
-        QToolButton:checked:hover {
-            background-color: #4968C2;
-        }
-        QToolButton:pressed {
-            background-color: #4968C2;
-            color: white;
-        }
-        QPushButton {
-            background-color: #5B7FDE;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            padding: 8px 16px;
-            font-weight: bold;
-            font-size: 13px;
-        }
-        QPushButton:hover {
-            background-color: #4968C2;
-        }
-        QPushButton:pressed {
-            background-color: #3A5CB8;
-        }
-        QTextEdit {
-            border: 1px solid #44474A;
-            border-radius: 4px;
-            background-color: #2C2F33;
-            color: #F3F3F3;
-            padding: 8px;
+            color: #FFFFFF;
             font-size: 14px;
         }
-        QComboBox {
-            border: 1px solid #44474A;
-            border-radius: 4px;
-            padding: 6px 12px;
-            background-color: #232629;
-            color: #F3F3F3;
-            min-width: 150px;
-        }
-        QComboBox:hover {
-            border-color: #3A5CB8;
-        }
-        QComboBox::drop-down {
-            subcontrol-origin: padding;
-            subcontrol-position: center right;
-            width: 20px;
-            border-left: none;
-        }
-        QComboBox QAbstractItemView {
-            background-color: #232629;
-            border: 1px solid #44474A;
-            selection-background-color: #3A5CB8;
-            selection-color: white;
-        }
-        QStatusBar {
-            background-color: #2C2F33;
-            color: #BBBBBB;
-            border-top: 1px solid #44474A;
-            font-size: 13px;
-        }
-        QLabel {
-            color: #F3F3F3;
-            font-size: 13px;
-        }
     """
 
-    # コントロールパネルのスタイル
-    CONTROL_PANEL_STYLE = """
-        #controlPanel {
-            background-color: white;
-            border-radius: 8px;
-            border: 1px solid #E2E6EC;
-        }
-    """
-
-    # 録音ボタンのスタイル
-    RECORD_BUTTON_STYLE = """
-        #recordButton {
-            background-color: #5B7FDE;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            padding: 8px 20px;
-            font-weight: bold;
-            font-size: 14px;
-        }
-        
-        #recordButton:hover {
-            background-color: #4968C2;
-        }
-        
-        #recordButton:pressed {
-            background-color: #3A5CB8;
-        }
-    """
-
-    # 録音ボタン（録音中）のスタイル
-    RECORD_BUTTON_RECORDING_STYLE = """
-        #recordButton {
-            background-color: #E05252;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            padding: 8px 20px;
-            font-weight: bold;
-            font-size: 14px;
-        }
-        
-        #recordButton:hover {
-            background-color: #D03A3A;
-        }
-        
-        #recordButton:pressed {
-            background-color: #C02E2E;
-        }
-    """
-
-    # 文字起こしパネルのスタイル
-    TRANSCRIPTION_PANEL_STYLE = """
-        #transcriptionPanel {
-            background-color: white;
-            border-radius: 8px;
-            border: 1px solid #E2E6EC;
-        }
-    """
-
-    # ダークテーマ用文字起こしパネルのスタイル
-    TRANSCRIPTION_PANEL_STYLE_DARK = """
-        #transcriptionPanel {
-            background-color: #2C2F33;
-            border-radius: 8px;
-            border: 1px solid #44474A;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-        }
-    """
-
-    # 文字起こしタイトルのスタイル 
-    TRANSCRIPTION_TITLE_STYLE = """
-        color: #324275;
-        font-weight: bold;
-        font-size: 15px;
-        border-bottom: 1px solid #EBF0FF;
-        padding-bottom: 8px;
-        margin-bottom: 5px;
-    """
-
-    # ダークテーマ用文字起こしタイトルのスタイル
-    TRANSCRIPTION_TITLE_STYLE_DARK = """
-        color: #F3F3F3;
-        font-weight: bold;
-        font-size: 15px;
-        border-bottom: 1px solid #44474A;
-        padding-bottom: 8px;
-        margin-bottom: 5px;
-    """
-
-    # 文字起こしテキストエリアのスタイル
-    TRANSCRIPTION_TEXT_STYLE = """
-        border: none;
-        background-color: white;
-        font-size: 14px;
-        line-height: 1.5;
-    """
-
-    # ダークテーマ用文字起こしテキストエリアのスタイル
-    TRANSCRIPTION_TEXT_STYLE_DARK = """
-        border: none;
-        background-color: #2C2F33;
-        color: #F3F3F3;
-        font-size: 14px;
-        line-height: 1.5;
-    """
-
-    # ステータスバーのスタイル
-    STATUS_BAR_STYLE = """
-        color: #555555;
-        font-size: 13px;
-    """
-
-    # 通常の録音インジケーターのスタイル
+    # All other styles reference the base ones
+    VOCABULARY_DIALOG_STYLE = API_KEY_DIALOG_STYLE
+    SYSTEM_INSTRUCTIONS_DIALOG_STYLE = API_KEY_DIALOG_STYLE
+    HOTKEY_DIALOG_STYLE = API_KEY_DIALOG_STYLE
+    MAIN_WINDOW_STYLE_DARK = MAIN_WINDOW_STYLE
+    TRANSCRIPTION_PANEL_STYLE_DARK = TRANSCRIPTION_PANEL_STYLE
+    TRANSCRIPTION_TITLE_STYLE_DARK = TRANSCRIPTION_TITLE_STYLE
+    TRANSCRIPTION_TEXT_STYLE_DARK = TRANSCRIPTION_TEXT_STYLE
+    STATUS_BAR_STYLE = "color: rgba(255, 255, 255, 0.8); font-size: 13px;"
     RECORDING_INDICATOR_NORMAL_STYLE = "color: gray; font-size: 16px;"
-
-    # 録音中の録音インジケーターのスタイル
-    RECORDING_INDICATOR_ACTIVE_STYLE = """
-        color: #5B7FDE;
-        font-size: 18px;
-        font-weight: bold;
-        animation: pulse 1.5s infinite;
-        
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.6; }
-            100% { opacity: 1; }
-        }
-    """
-
-    # 録音タイマーラベルのスタイル
-    RECORDING_TIMER_LABEL_STYLE = "color: #444; font-family: 'Roboto Mono', monospace; font-weight: bold;"
-
-    # 録音終了後の録音インジケーターのスタイル
-    RECORDING_INDICATOR_INACTIVE_STYLE = "color: #C5CFDC; font-size: 16px;"
-
-    # システムトレイメニューのスタイル
-    SYSTEM_TRAY_MENU_STYLE = """
-        QMenu {
-            background-color: #FFFFFF;
-            border: 1px solid #E2E6EC;
-            padding: 2px;
-        }
-        
-        QMenu::item {
-            padding: 6px 24px;
-            margin: 2px 4px;
-        }
-        
-        QMenu::item:selected {
-            background-color: #5B7FDE;
-            color: white;
-            border-radius: 3px;
-        }
-        
-        QMenu::separator {
-            height: 1px;
-            background-color: #E2E6EC;
-            margin: 3px 8px;
-        }
-    """ 
+    RECORDING_INDICATOR_ACTIVE_STYLE = "color: #FFD23F; font-size: 18px; font-weight: bold;"
+    RECORDING_TIMER_LABEL_STYLE = "color: #FFD23F; font-family: monospace; font-weight: bold;"
+    RECORDING_INDICATOR_INACTIVE_STYLE = "color: rgba(255, 255, 255, 0.5); font-size: 16px;"
+    SYSTEM_TRAY_MENU_STYLE = API_KEY_DIALOG_STYLE
+    API_KEY_INFO_LABEL_STYLE = "color: rgba(255, 255, 255, 0.8); padding: 5px 0;"

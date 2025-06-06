@@ -6,7 +6,7 @@
 
 import os
 from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QLabel, QFrame, QApplication
+    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame, QApplication
 )
 from PyQt6.QtCore import Qt, QTimer
 
@@ -24,7 +24,8 @@ class StatusIndicatorWindow(QWidget):
     # 状態の定義
     MODE_RECORDING = 0
     MODE_TRANSCRIBING = 1
-    MODE_TRANSCRIBED = 2
+    MODE_TRANSLATING = 2
+    MODE_TRANSCRIBED = 3
     
     def __init__(self, parent=None):
         """
@@ -54,11 +55,23 @@ class StatusIndicatorWindow(QWidget):
         layout.setContentsMargins(8, 12, 8, 12)
         layout.setSpacing(4)
         
+        # アイコンとステータスのレイアウト
+        status_layout = QHBoxLayout()
+        status_layout.setSpacing(8)
+        
+        # 状態アイコン
+        self.status_icon = QLabel()
+        self.status_icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.status_icon.setObjectName("statusIcon")
+        status_layout.addWidget(self.status_icon)
+        
         # 状態テキスト
         self.status_label = QLabel()
         self.status_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.status_label.setObjectName("statusLabel")
-        layout.addWidget(self.status_label)
+        status_layout.addWidget(self.status_label)
+        
+        layout.addLayout(status_layout)
         
         # 録音時間表示ラベル
         self.timer_label = QLabel()
@@ -100,30 +113,43 @@ class StatusIndicatorWindow(QWidget):
         self.current_mode = mode
         
         if mode == self.MODE_RECORDING:
+            self.status_icon.setText("🎙️")
             self.status_label.setText(AppLabels.INDICATOR_RECORDING)
-            self.setFixedSize(150, 90)
+            self.setFixedSize(180, 90)
             self.timer_label.setText("00:00")
             self.timer_label.show()
             
-            # 録音中のスタイル - 赤系のグラデーション
+            # 録音中のスタイル - ゴールド
             self.frame.setStyleSheet(AppStyles.RECORDING_INDICATOR_FRAME_STYLE)
         
         elif mode == self.MODE_TRANSCRIBING:
+            self.status_icon.setText("✍️")
             self.status_label.setText(AppLabels.INDICATOR_TRANSCRIBING)
-            self.setFixedSize(150, 70)
+            self.setFixedSize(180, 70)
             self.timer_label.setText("")
             self.timer_label.hide()
             
-            # 文字起こし中のスタイル - グレー系のグラデーション
+            # 文字起こし中のスタイル - シアン
             self.frame.setStyleSheet(AppStyles.TRANSCRIBING_INDICATOR_FRAME_STYLE)
         
-        elif mode == self.MODE_TRANSCRIBED:
-            self.status_label.setText(AppLabels.INDICATOR_TRANSCRIBED)
-            self.setFixedSize(150, 70)
+        elif mode == self.MODE_TRANSLATING:
+            self.status_icon.setText("🌐")
+            self.status_label.setText("翻訳中...")
+            self.setFixedSize(180, 70)
             self.timer_label.setText("")
             self.timer_label.hide()
             
-            # 文字起こし完了のスタイル - 青系のグラデーション
+            # 翻訳中のスタイル - パープル
+            self.frame.setStyleSheet(AppStyles.TRANSLATING_INDICATOR_FRAME_STYLE)
+        
+        elif mode == self.MODE_TRANSCRIBED:
+            self.status_icon.setText("✅")
+            self.status_label.setText(AppLabels.INDICATOR_TRANSCRIBED)
+            self.setFixedSize(180, 70)
+            self.timer_label.setText("")
+            self.timer_label.hide()
+            
+            # 完了のスタイル - グリーン
             self.frame.setStyleSheet(AppStyles.TRANSCRIBED_INDICATOR_FRAME_STYLE)
             
             # 3秒後に非表示

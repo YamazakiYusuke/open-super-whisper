@@ -1,6 +1,7 @@
 # Environment and sensitive data
 .env
 .venv/
+venv/
 env/
 __pycache__/
 *.py[cod]
@@ -11,6 +12,7 @@ dist/
 build/
 *.egg-info/
 *.spec
+library/
 
 # Temp files
 temp/

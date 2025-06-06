@@ -28,6 +28,8 @@ from src.gui.components.dialogs.hotkey_dialog import HotkeyDialog
 from src.gui.components.dialogs.model_loading_dialog import ModelLoadingDialog
 from src.gui.components.dialogs.translation_dialog import TranslationDialog
 from src.gui.components.widgets.status_indicator import StatusIndicatorWindow
+from src.gui.components.widgets.audio_visualizer import AudioVisualizer
+from src.gui.components.widgets.typewriter_text import TypewriterTextEdit
 from src.gui.utils.resource_helper import getResourcePath
 from src.gui.utils.keyboard_helper import KeyboardAutomation
 
@@ -144,8 +146,26 @@ class MainWindow(QMainWindow):
             # アイコンファイルが見つからない場合は標準アイコンを使用
             self.setWindowIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_MediaPlay))
             
-        # アプリ全体のスタイルを設定
-        self.setStyleSheet(AppStyles.MAIN_WINDOW_STYLE)
+        # Apply the futuristic style
+        try:
+            self.setStyleSheet(AppStyles.MAIN_WINDOW_STYLE)
+        except Exception as e:
+            print(f"Style application failed: {e}")
+            # Fallback to a simple dark theme
+            fallback_style = """
+                QMainWindow {
+                    background: qlineargradient(x1:0, y1:0, x2:1, y2:1, 
+                        stop:0 rgba(10, 15, 30, 0.95), 
+                        stop:0.5 rgba(15, 25, 45, 0.9), 
+                        stop:1 rgba(20, 30, 60, 0.95));
+                }
+                QWidget {
+                    color: white;
+                    background: rgba(255, 255, 255, 0.1);
+                    border-radius: 10px;
+                }
+            """
+            self.setStyleSheet(fallback_style)
         
         # 中央ウィジェットとメインレイアウトの作成
         central_widget = QWidget()
@@ -156,13 +176,17 @@ class MainWindow(QMainWindow):
         # ツールバーの作成
         self.create_toolbar()
         
-        # コントロールパネル
+        # Audio Visualizer
+        self.audio_visualizer = AudioVisualizer()
+        main_layout.addWidget(self.audio_visualizer)
+        
+        # Control Panel with Glass Morphism
         control_panel = QWidget()
         control_panel.setObjectName("controlPanel")
         control_panel.setStyleSheet(AppStyles.CONTROL_PANEL_STYLE)
         control_layout = QGridLayout()
-        control_layout.setContentsMargins(15, 15, 15, 15)
-        control_layout.setSpacing(12)
+        control_layout.setContentsMargins(20, 20, 20, 20)
+        control_layout.setSpacing(15)
         
         # 録音コントロール
         self.record_button = QPushButton(AppLabels.RECORD_START_BUTTON)
@@ -257,16 +281,16 @@ class MainWindow(QMainWindow):
         self.tab_widget = QTabWidget()
         self.tab_widget.setMinimumHeight(250)
         
-        # 文字起こし出力（原文タブ）
-        self.transcription_text = QTextEdit()
+        # Futuristic Transcription Output with Typewriter Effect
+        self.transcription_text = TypewriterTextEdit()
         self.transcription_text.setPlaceholderText(AppLabels.TRANSCRIPTION_PLACEHOLDER)
-        self.transcription_text.setReadOnly(False)  # 編集できるように設定
+        self.transcription_text.setReadOnly(False)
         self.transcription_text.setStyleSheet(AppStyles.TRANSCRIPTION_TEXT_STYLE)
         
-        # 翻訳出力タブ
-        self.translation_text = QTextEdit()
+        # Translation Output with Typewriter Effect
+        self.translation_text = TypewriterTextEdit()
         self.translation_text.setPlaceholderText("ここに翻訳が表示されます...")
-        self.translation_text.setReadOnly(False)  # 編集できるように設定
+        self.translation_text.setReadOnly(False)
         self.translation_text.setStyleSheet(AppStyles.TRANSCRIPTION_TEXT_STYLE)
         
         # タブを追加
@@ -506,6 +530,9 @@ class MainWindow(QMainWindow):
         self.audio_recorder.start_recording()
         self.recording_status_changed.emit(True)
         
+        # Start audio visualizer animation
+        self.audio_visualizer.start_recording()
+        
         # 録音タイマー開始
         self.recording_start_time = time.time()
         self.recording_timer.start(1000)  # 1秒ごとに更新
@@ -532,6 +559,9 @@ class MainWindow(QMainWindow):
         self.record_button.setText(AppLabels.RECORD_START_BUTTON)
         audio_file = self.audio_recorder.stop_recording()
         self.recording_status_changed.emit(False)
+        
+        # Stop audio visualizer animation
+        self.audio_visualizer.stop_recording()
         
         # 録音タイマー停止
         self.recording_timer.stop()
@@ -642,10 +672,6 @@ class MainWindow(QMainWindow):
                     print(f"ffmpeg確認エラー: {e}")
             
             # 音声を文字起こし（必要に応じて翻訳も実行）
-            if self.translation_enabled:
-                # ステータスを翻訳中に更新
-                QTimer.singleShot(100, lambda: self.status_bar.showMessage(AppLabels.STATUS_TRANSLATING))
-                
             result = self.transcription_manager.transcribe_and_translate(audio_file, language)
             
             # 結果でシグナルを発信
@@ -664,15 +690,18 @@ class MainWindow(QMainWindow):
         transcription = result.get("transcription", "")
         translation = result.get("translation", None)
         
-        # 文字起こし結果でテキストウィジェットを更新
-        self.transcription_text.setPlainText(transcription)
+        # 文字起こし結果をタイプライターエフェクトで表示
+        self.transcription_text.set_text_with_typewriter(transcription, speed=25)
         
-        # 翻訳結果がある場合は翻訳タブを更新
+        # 翻訳結果がある場合は翻訳タブをタイプライターエフェクトで更新
         if translation:
-            self.translation_text.setPlainText(translation)
+            # Wait for transcription to finish, then show translation
+            def show_translation():
+                self.translation_text.set_text_with_typewriter(translation, speed=20)
+                self.tab_widget.setCurrentIndex(1)
+            
             self.tab_widget.setTabEnabled(1, True)
-            # 翻訳が完了したら翻訳タブに切り替え
-            self.tab_widget.setCurrentIndex(1)
+            self.transcription_text.typing_finished.connect(show_translation)
         else:
             self.tab_widget.setTabEnabled(1, self.translation_enabled)
         
