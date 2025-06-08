@@ -83,13 +83,13 @@ class AppLabels:
     OK_BUTTON = "OK"
     
     # システム指示ダイアログ
-    INSTRUCTIONS_DIALOG_TITLE = "システム指示"
-    INSTRUCTIONS_INFO = "ここで文字起こしのための特別な指示を設定できます。例：\n" \
-                      "- \"えー、あの、などのフィラーを無視してください\"\n" \
-                      "- \"句読点を適切に入れてください\"\n" \
-                      "- \"段落に分けてください\""
-    INSTRUCTIONS_SECTION_TITLE = "システム指示リスト:"
-    INSTRUCTIONS_PLACEHOLDER = "新しい指示を入力..."
+    INSTRUCTIONS_DIALOG_TITLE = "System Instructions"
+    INSTRUCTIONS_INFO = "You can set special instructions for transcription here. Examples:\n" \
+                      "- \"Ignore filler words like 'um' and 'uh'\"\n" \
+                      "- \"Add proper punctuation\"\n" \
+                      "- \"Divide into paragraphs\""
+    INSTRUCTIONS_SECTION_TITLE = "System Instructions List:"
+    INSTRUCTIONS_PLACEHOLDER = "Enter new instruction..."
     
     # グローバルホットキーダイアログ
     HOTKEY_DIALOG_TITLE = "グローバルホットキー設定"

@@ -50,26 +50,26 @@ class Translator:
         try:
             # 言語名のマッピング
             language_names = {
-                "ja": "日本語",
-                "en": "英語",
-                "zh": "中国語（簡体字）",
-                "zh-TW": "中国語（繁体字）",
-                "ko": "韓国語",
-                "es": "スペイン語",
-                "fr": "フランス語",
-                "de": "ドイツ語",
-                "it": "イタリア語",
-                "pt": "ポルトガル語",
-                "ru": "ロシア語",
-                "ar": "アラビア語",
-                "hi": "ヒンディー語",
-                "th": "タイ語",
-                "vi": "ベトナム語",
-                "id": "インドネシア語",
-                "tr": "トルコ語",
-                "pl": "ポーランド語",
-                "nl": "オランダ語",
-                "sv": "スウェーデン語",
+                "ja": "Japanese",
+                "en": "English",
+                "zh": "Chinese (Simplified)",
+                "zh-TW": "Chinese (Traditional)",
+                "ko": "Korean",
+                "es": "Spanish",
+                "fr": "French",
+                "de": "German",
+                "it": "Italian",
+                "pt": "Portuguese",
+                "ru": "Russian",
+                "ar": "Arabic",
+                "hi": "Hindi",
+                "th": "Thai",
+                "vi": "Vietnamese",
+                "id": "Indonesian",
+                "tr": "Turkish",
+                "pl": "Polish",
+                "nl": "Dutch",
+                "sv": "Swedish",
             }
             
             target_language_name = language_names.get(target_language, target_language)
@@ -77,17 +77,17 @@ class Translator:
             # プロンプトの構築
             if source_language:
                 source_language_name = language_names.get(source_language, source_language)
-                system_prompt = f"あなたは優秀な翻訳者です。{source_language_name}から{target_language_name}への翻訳を行ってください。"
+                system_prompt = f"You are an excellent translator. Please translate from {source_language_name} to {target_language_name}."
             else:
-                system_prompt = f"あなたは優秀な翻訳者です。与えられたテキストを{target_language_name}に翻訳してください。"
+                system_prompt = f"You are an excellent translator. Please translate the given text to {target_language_name}."
             
             system_prompt += """
-翻訳の際は以下の点に注意してください：
-- 原文の意味を正確に伝える
-- 自然な表現を使用する
-- 専門用語は適切に翻訳する
-- 文体や敬語レベルは文脈に応じて適切に選択する
-- 翻訳結果のみを返し、説明や注釈は含めない
+Please pay attention to the following points when translating:
+- Accurately convey the meaning of the original text
+- Use natural expressions
+- Translate technical terms appropriately
+- Choose appropriate style and formality level according to context
+- Return only the translation result without explanations or annotations
 """
             
             # Chat APIを呼び出し
@@ -111,4 +111,4 @@ class Translator:
             
         except Exception as e:
             print(f"Translation error: {e}")
-            raise Exception(f"翻訳エラー: {str(e)}")
+            raise Exception(f"Translation error: {str(e)}")
