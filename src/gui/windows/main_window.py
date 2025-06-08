@@ -26,6 +26,7 @@ from src.gui.components.dialogs.vocabulary_dialog import VocabularyDialog
 from src.gui.components.dialogs.system_instructions_dialog import SystemInstructionsDialog
 from src.gui.components.dialogs.hotkey_dialog import HotkeyDialog
 from src.gui.components.dialogs.translation_dialog import TranslationDialog
+from src.gui.components.dialogs.sound_settings_dialog import SoundSettingsDialog
 from src.gui.components.widgets.status_indicator import StatusIndicatorWindow
 from src.gui.components.widgets.audio_visualizer import AudioVisualizer
 from src.gui.components.widgets.typewriter_text import TypewriterTextEdit
@@ -90,6 +91,8 @@ class MainWindow(QMainWindow):
         
         # サウンド設定
         self.enable_sound = self.settings.value("enable_sound", AppConfig.DEFAULT_ENABLE_SOUND, type=bool)
+        self.sound_volume = self.settings.value("sound_volume", AppConfig.DEFAULT_SOUND_VOLUME, type=float)
+        self.sound_type = self.settings.value("sound_type", AppConfig.DEFAULT_SOUND_TYPE)
         
         # インジケータ表示設定（デフォルトON）
         self.show_indicator = self.settings.value("show_indicator", AppConfig.DEFAULT_SHOW_INDICATOR, type=bool)
@@ -374,6 +377,11 @@ class MainWindow(QMainWindow):
         self.sound_action.setChecked(self.enable_sound)
         self.sound_action.triggered.connect(self.toggle_sound_option)
         toolbar.addAction(self.sound_action)
+        
+        # サウンド設定
+        sound_settings_action = QAction(AppLabels.SOUND_SETTINGS, self)
+        sound_settings_action.triggered.connect(self.show_sound_settings_dialog)
+        toolbar.addAction(sound_settings_action)
         
         # インジケータ表示オプション
         self.indicator_action = QAction(AppLabels.STATUS_INDICATOR, self)
@@ -832,6 +840,23 @@ class MainWindow(QMainWindow):
             # ダイアログがキャンセルされた場合は元のホットキーを再設定
             self.setup_global_hotkey()
     
+    def show_sound_settings_dialog(self):
+        """
+        サウンド設定ダイアログを表示する
+        
+        通知音の音量とタイプを設定するためのダイアログを表示します。
+        """
+        dialog = SoundSettingsDialog(self, self.sound_volume, self.sound_type)
+        if dialog.exec():
+            self.sound_volume = dialog.get_volume()
+            self.sound_type = dialog.get_sound_type()
+            
+            # 設定を保存
+            self.settings.setValue("sound_volume", self.sound_volume)
+            self.settings.setValue("sound_type", self.sound_type)
+            
+            self.status_bar.showMessage("サウンド設定を保存しました", 2000)
+    
     def toggle_auto_copy(self):
         """
         自動コピー機能のオン/オフを切り替える
@@ -904,10 +929,16 @@ class MainWindow(QMainWindow):
         """
         if not self.enable_sound:
             return
-        # assets内の音声ファイルを使用
-        sound_path = getResourcePath(AppConfig.START_SOUND_PATH)
+        
+        # 選択されたサウンドタイプから適切なサウンドファイルを取得
+        if self.sound_type in AppConfig.SOUND_TYPES:
+            sound_file = AppConfig.SOUND_TYPES[self.sound_type]["start"]
+        else:
+            sound_file = AppConfig.START_SOUND_PATH
+        
+        sound_path = getResourcePath(sound_file)
         self.start_player.setSource(QUrl.fromLocalFile(sound_path))
-        self.start_audio_output.setVolume(0.5)
+        self.start_audio_output.setVolume(self.sound_volume)
         self.start_player.play()
     
     def play_stop_sound(self):
@@ -918,10 +949,16 @@ class MainWindow(QMainWindow):
         """
         if not self.enable_sound:
             return
-        # assets内の音声ファイルを使用
-        sound_path = getResourcePath(AppConfig.STOP_SOUND_PATH)
+        
+        # 選択されたサウンドタイプから適切なサウンドファイルを取得
+        if self.sound_type in AppConfig.SOUND_TYPES:
+            sound_file = AppConfig.SOUND_TYPES[self.sound_type]["stop"]
+        else:
+            sound_file = AppConfig.STOP_SOUND_PATH
+        
+        sound_path = getResourcePath(sound_file)
         self.stop_player.setSource(QUrl.fromLocalFile(sound_path))
-        self.stop_audio_output.setVolume(0.5)
+        self.stop_audio_output.setVolume(self.sound_volume)
         self.stop_player.play()
     
     def play_complete_sound(self):
@@ -932,10 +969,16 @@ class MainWindow(QMainWindow):
         """
         if not self.enable_sound:
             return
-        # assets内の音声ファイルを使用
-        sound_path = getResourcePath(AppConfig.COMPLETE_SOUND_PATH)
+        
+        # 選択されたサウンドタイプから適切なサウンドファイルを取得
+        if self.sound_type in AppConfig.SOUND_TYPES:
+            sound_file = AppConfig.SOUND_TYPES[self.sound_type]["complete"]
+        else:
+            sound_file = AppConfig.COMPLETE_SOUND_PATH
+        
+        sound_path = getResourcePath(sound_file)
         self.complete_player.setSource(QUrl.fromLocalFile(sound_path))
-        self.complete_audio_output.setVolume(0.5)
+        self.complete_audio_output.setVolume(self.sound_volume)
         self.complete_player.play()
 
     def toggle_sound_option(self):

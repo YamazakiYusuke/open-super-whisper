@@ -34,6 +34,7 @@ class AppLabels:
     AUTO_COPY = "自動コピー"
     AUTO_PASTE = "自動ペースト"
     SOUND_NOTIFICATION = "通知音"
+    SOUND_SETTINGS = "通知音設定"
     STATUS_INDICATOR = "状態インジケータ"
     EXIT_APP = "アプリケーション終了"
     
@@ -95,6 +96,14 @@ class AppLabels:
     HOTKEY_LABEL = "ホットキー:"
     HOTKEY_PLACEHOLDER = "例: ctrl+shift+r"
     HOTKEY_INFO = "録音を開始/停止するグローバルホットキーを設定します。例: ctrl+shift+r, alt+w など"
+    
+    # サウンド設定ダイアログ
+    SOUND_DIALOG_TITLE = "通知音設定"
+    SOUND_VOLUME_LABEL = "音量:"
+    SOUND_TYPE_LABEL = "サウンドタイプ:"
+    SOUND_VOLUME_INFO = "通知音の音量を設定します（0-100%）"
+    SOUND_TYPE_INFO = "通知音のタイプを選択します"
+    SOUND_TEST_BUTTON = "テスト再生"
     
     # ホットキー情報ダイアログ
     HOTKEY_INFO_TITLE = "ホットキー情報"

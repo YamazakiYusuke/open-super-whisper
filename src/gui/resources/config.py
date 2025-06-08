@@ -20,6 +20,8 @@ class AppConfig:
     DEFAULT_AUTO_COPY = True
     DEFAULT_AUTO_PASTE = False
     DEFAULT_ENABLE_SOUND = True
+    DEFAULT_SOUND_VOLUME = 0.5
+    DEFAULT_SOUND_TYPE = "default"
     DEFAULT_SHOW_INDICATOR = True
     DEFAULT_MODEL = "gpt-4o-transcribe"
     
@@ -34,4 +36,14 @@ class AppConfig:
     # サウンドファイルパス
     START_SOUND_PATH = "assets/start_sound.wav"
     STOP_SOUND_PATH = "assets/stop_sound.wav"
-    COMPLETE_SOUND_PATH = "assets/complete_sound.wav" 
+    COMPLETE_SOUND_PATH = "assets/complete_sound.wav"
+    
+    # サウンドタイプ設定
+    SOUND_TYPES = {
+        "default": {
+            "name": "デフォルト",
+            "start": "assets/start_sound.wav",
+            "stop": "assets/stop_sound.wav",
+            "complete": "assets/complete_sound.wav"
+        }
+    } 
