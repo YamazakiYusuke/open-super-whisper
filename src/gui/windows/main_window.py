@@ -134,8 +134,8 @@ class MainWindow(QMainWindow):
         およびウィジェットの配置を設定します。
         """
         self.setWindowTitle(AppLabels.APP_TITLE)
-        self.setMinimumSize(1200, 600)
-        self.setFixedSize(1200, 600)  # ウィンドウサイズを固定
+        self.setMinimumSize(800, 700)
+        self.resize(900, 750)  # より適切なアスペクト比
         
         # アプリケーションアイコンを設定
         icon_path = getResourcePath("assets/icon.ico")
@@ -249,23 +249,34 @@ class MainWindow(QMainWindow):
         control_panel.setLayout(control_layout)
         main_layout.addWidget(control_panel)
         
-        # 文字起こしパネル
+        # 文字起こしエリア全体のコンテナ
+        transcription_container = QWidget()
+        transcription_container_layout = QVBoxLayout(transcription_container)
+        transcription_container_layout.setContentsMargins(20, 10, 20, 10)
+        transcription_container_layout.setSpacing(10)
+        
+        # 文字起こしパネル（タイトルとタブウィジェットを含む）
         transcription_panel = QWidget()
         transcription_panel.setObjectName("transcriptionPanel")
         transcription_panel.setStyleSheet(AppStyles.TRANSCRIPTION_PANEL_STYLE)
+        # 幅の制限を削除してparent widthに合わせる
+        transcription_panel.setMaximumHeight(400)  # 最大高さを拡大
         
         transcription_layout = QVBoxLayout(transcription_panel)
         transcription_layout.setContentsMargins(15, 15, 15, 15)
+        transcription_layout.setSpacing(8)
         
-        # タイトルラベル
+        # タイトルラベル（パネル内に移動）
         title_label = QLabel(AppLabels.TRANSCRIPTION_TITLE)
         title_label.setObjectName("sectionTitle")
         title_label.setStyleSheet(AppStyles.TRANSCRIPTION_TITLE_STYLE)
+        title_label.setAlignment(Qt.AlignmentFlag.AlignLeft)
         transcription_layout.addWidget(title_label)
         
         # タブウィジェット
         self.tab_widget = QTabWidget()
-        self.tab_widget.setMinimumHeight(250)
+        self.tab_widget.setMinimumHeight(200)
+        self.tab_widget.setMaximumHeight(320)
         
         # Futuristic Transcription Output with Typewriter Effect
         self.transcription_text = TypewriterTextEdit()
@@ -287,7 +298,11 @@ class MainWindow(QMainWindow):
         self.tab_widget.setTabEnabled(1, self.translation_enabled)
         
         transcription_layout.addWidget(self.tab_widget)
-        main_layout.addWidget(transcription_panel, 1)
+        
+        # パネルを全幅に配置
+        transcription_container_layout.addWidget(transcription_panel, 1)
+        transcription_container_layout.addStretch()  # 下部にストレッチを追加
+        main_layout.addWidget(transcription_container, 1)
         
         # ステータスバー
         self.status_bar = self.statusBar()

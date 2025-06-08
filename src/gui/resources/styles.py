@@ -77,6 +77,40 @@ class AppStyles:
             color: #FFFFFF;
         }
         
+        QTabWidget {
+            border: none;
+            background-color: transparent;
+        }
+        
+        QTabWidget::pane {
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            background-color: rgba(255, 255, 255, 0.03);
+        }
+        
+        QTabBar::tab {
+            background-color: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-bottom: none;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+            padding: 8px 20px;
+            margin-right: 2px;
+            color: #FFFFFF;
+            font-weight: bold;
+        }
+        
+        QTabBar::tab:selected {
+            background-color: rgba(0, 217, 255, 0.2);
+            border: 2px solid #00D9FF;
+            border-bottom: none;
+            color: #00D9FF;
+        }
+        
+        QTabBar::tab:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
         QComboBox:hover {
             border: 2px solid #00D9FF;
             background-color: rgba(255, 255, 255, 0.12);
@@ -142,9 +176,10 @@ class AppStyles:
         font-weight: bold;
         font-size: 18px;
         font-family: "Segoe UI", sans-serif;
-        border-bottom: 2px solid #00D9FF;
-        padding-bottom: 12px;
-        margin-bottom: 10px;
+        border: none;
+        padding: 8px 0px;
+        margin: 0px;
+        background-color: transparent;
     """
 
     # Transcription Text Style
@@ -154,10 +189,12 @@ class AppStyles:
         color: #FFFFFF;
         font-size: 15px;
         font-family: "Consolas", monospace;
-        line-height: 1.8;
-        padding: 20px;
+        line-height: 1.6;
+        padding: 15px;
         border-radius: 15px;
         selection-background-color: rgba(0, 217, 255, 0.3);
+        min-height: 140px;
+        max-height: 260px;
     """
 
     # Status Indicator Style
