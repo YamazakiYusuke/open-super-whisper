@@ -36,7 +36,7 @@ python -m pip install --upgrade pip
 
 # Install dependencies
 Write-Host "Installing dependencies..." -ForegroundColor Yellow
-pip install pynput>=1.7.6 numpy>=1.24.0 openai>=1.0.0 pyinstaller>=6.13.0 pyqt6>=6.5.0 sounddevice>=0.4.6 soundfile>=0.12.1
+pip install pynput>=1.7.6 "numpy>=1.24.0,<2.0.0" openai>=1.0.0 pyinstaller>=6.13.0 pyqt6>=6.5.0 sounddevice>=0.4.6 soundfile>=0.12.1
 
 # Check if assets directory exists
 if (!(Test-Path "assets")) {

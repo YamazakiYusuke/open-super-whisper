@@ -2,6 +2,7 @@
 .env
 .venv/
 venv/
+venv_windows/
 env/
 __pycache__/
 *.py[cod]
