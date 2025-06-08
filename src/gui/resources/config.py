@@ -22,8 +22,6 @@ class AppConfig:
     DEFAULT_ENABLE_SOUND = True
     DEFAULT_SHOW_INDICATOR = True
     DEFAULT_MODEL = "gpt-4o-transcribe"
-    DEFAULT_LOCAL_MODEL = "base"  # ローカルモデルのデフォルト
-    DEFAULT_TRANSCRIPTION_MODE = 0  # 0: API, 1: ローカル
     
     # 言語設定
     DEFAULT_LANGUAGE = ""  # 空文字列は自動検出を意味する

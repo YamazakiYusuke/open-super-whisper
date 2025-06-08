@@ -25,7 +25,6 @@ from src.gui.components.dialogs.api_key_dialog import APIKeyDialog
 from src.gui.components.dialogs.vocabulary_dialog import VocabularyDialog
 from src.gui.components.dialogs.system_instructions_dialog import SystemInstructionsDialog
 from src.gui.components.dialogs.hotkey_dialog import HotkeyDialog
-from src.gui.components.dialogs.model_loading_dialog import ModelLoadingDialog
 from src.gui.components.dialogs.translation_dialog import TranslationDialog
 from src.gui.components.widgets.status_indicator import StatusIndicatorWindow
 from src.gui.components.widgets.audio_visualizer import AudioVisualizer
@@ -44,7 +43,6 @@ class MainWindow(QMainWindow):
     # カスタムシグナルの定義
     transcription_complete = pyqtSignal(dict)  # 文字起こしと翻訳の結果を含む辞書
     recording_status_changed = pyqtSignal(bool)
-    model_loading_complete_signal = pyqtSignal(bool, object)  # (success, error)
     
     def __init__(self):
         super().__init__()
@@ -78,8 +76,6 @@ class MainWindow(QMainWindow):
         self.transcription_manager.set_target_language(self.target_language)
         self.transcription_manager.set_translation_model(self.translation_model)
         
-        # モデルロード中かどうかのフラグ（新規追加）
-        self.is_model_loading = False
         
         # 録音状態
         self.is_recording = False
@@ -113,10 +109,9 @@ class MainWindow(QMainWindow):
         # シグナルの接続
         self.transcription_complete.connect(self.on_transcription_complete)
         self.recording_status_changed.connect(self.update_recording_status)
-        self.model_loading_complete_signal.connect(self._on_model_loading_complete_ui)
         
         # APIキーの確認
-        if self.transcription_mode == TranscriptionMode.API.value and not self.api_key:
+        if not self.api_key:
             self.show_api_key_dialog()
             
         # 追加の接続設定
@@ -207,20 +202,6 @@ class MainWindow(QMainWindow):
         form_layout.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.AllNonFixedFieldsGrow)
         form_layout.setLabelAlignment(Qt.AlignmentFlag.AlignRight)
         
-        # 文字起こしモード選択（新規追加）
-        mode_label = QLabel(AppLabels.TRANSCRIPTION_MODE)
-        self.mode_combo = QComboBox()
-        self.mode_combo.setObjectName("modeCombo")
-        self.mode_combo.addItem(AppLabels.MODE_API, TranscriptionMode.API.value)
-        self.mode_combo.addItem(AppLabels.MODE_LOCAL, TranscriptionMode.LOCAL.value)
-        
-        # 設定から前回のモードを復元
-        index = self.mode_combo.findData(self.transcription_mode)
-        if index >= 0:
-            self.mode_combo.setCurrentIndex(index)
-        
-        # フォームレイアウトにモード選択を追加
-        form_layout.addRow(mode_label, self.mode_combo)
         
         # 言語選択
         self.language_combo = QComboBox()
@@ -679,23 +660,6 @@ class MainWindow(QMainWindow):
                 
             print(f"文字起こしを実行: {audio_file} (サイズ: {os.path.getsize(audio_file)} バイト)")
             
-            # ローカルモードでffmpegの存在確認
-            if self.transcription_mode == TranscriptionMode.LOCAL.value:
-                try:
-                    import subprocess
-                    result = subprocess.run(["ffmpeg", "-version"], 
-                                          stdout=subprocess.PIPE, 
-                                          stderr=subprocess.PIPE, 
-                                          text=True)
-                    if result.returncode != 0:
-                        err_msg = "ffmpegがインストールされていないか、正しく設定されていません。"
-                        self.transcription_complete.emit({
-                            "transcription": AppLabels.ERROR_TRANSCRIPTION.format(err_msg),
-                            "translation": None
-                        })
-                        return
-                except Exception as e:
-                    print(f"ffmpeg確認エラー: {e}")
             
             # 音声を文字起こし（必要に応じて翻訳も実行）
             result = self.transcription_manager.transcribe_and_translate(audio_file, language)
@@ -805,87 +769,21 @@ class MainWindow(QMainWindow):
         """追加の接続設定"""
         # モデル選択が変更されたときのイベント
         self.model_combo.currentIndexChanged.connect(self.on_model_changed)
-        
-        # モード変更シグナルの接続
-        self.mode_combo.currentIndexChanged.connect(self.on_mode_changed)
     
     def on_model_changed(self, index):
         """モデル選択変更時の処理"""
         model_id = self.model_combo.itemData(index)
         
-        # 現在のモードに応じたトランスクライバーにモデルを設定
+        # トランスクライバーにモデルを設定
         self.transcription_manager.set_model(model_id)
         
-        # 設定に保存（モードに応じて設定キーを変更）
-        setting_key = "local_model" if self.transcription_mode == TranscriptionMode.LOCAL.value else "model"
-        self.settings.setValue(setting_key, model_id)
+        # 設定に保存
+        self.settings.setValue("model", model_id)
         
         # UI表示の更新
         model_name = self.model_combo.currentText()
         self.status_bar.showMessage(AppLabels.STATUS_MODEL_CHANGED.format(model_name), 3000)
-        
-        # ローカルモードの場合、必要に応じてモデルを事前ロード
-        if self.transcription_mode == TranscriptionMode.LOCAL.value:
-            self.preload_local_model()
     
-    def on_mode_changed(self, index):
-        """文字起こしモードが変更された時の処理"""
-        mode = self.mode_combo.itemData(index)
-        
-        # モードを設定
-        self.transcription_mode = mode
-        self.transcription_manager.set_mode(mode)
-        
-        # モードを設定に保存
-        self.settings.setValue("transcription_mode", mode)
-        
-        # モードに合わせてモデルコンボボックスを更新
-        self.update_model_combo()
-        
-        # UI表示の更新
-        mode_name = self.mode_combo.currentText()
-        self.status_bar.showMessage(AppLabels.STATUS_MODE_CHANGED.format(mode_name), 3000)
-        
-        # ローカルモードの場合、必要に応じてモデルを事前ロード
-        if mode == TranscriptionMode.LOCAL.value:
-            self.preload_local_model()
-    
-    def preload_local_model(self):
-        """ローカルWhisperモデルを事前にロード（バックグラウンド）"""
-        if self.transcription_mode != TranscriptionMode.LOCAL.value:
-            return
-            
-        # すでにロード中の場合は何もしない
-        if self.is_model_loading:
-            return
-            
-        self.is_model_loading = True
-        
-        # モデルロード中ダイアログを表示
-        self.loading_dialog = ModelLoadingDialog(self)
-        self.loading_dialog.show()
-        
-        # ローカルモデルの事前ロードを開始
-        self.transcription_manager.preload_local_model(self.on_model_loading_complete)
-    
-    def on_model_loading_complete(self, success, error=None):
-        """モデルロード完了時のコールバック（ワーカースレッド）"""
-        # シグナルでメインスレッドに通知
-        self.model_loading_complete_signal.emit(success, error)
-    
-    def _on_model_loading_complete_ui(self, success, error=None):
-        """モデルロード完了時のUI更新（メインスレッド）"""
-        self.is_model_loading = False
-        # ロードダイアログを閉じる
-        if hasattr(self, 'loading_dialog') and self.loading_dialog:
-            self.loading_dialog.accept()
-        # ロード失敗時のエラーメッセージ
-        if not success:
-            QMessageBox.warning(
-                self,
-                AppLabels.MODEL_LOAD_ERROR_TITLE,
-                f"{AppLabels.MODEL_LOAD_ERROR_MSG}: {error if error else 'Unknown error'}"
-            )
     
     def setup_global_hotkey(self):
         """
@@ -1165,11 +1063,11 @@ class MainWindow(QMainWindow):
             event.accept()
 
     def update_model_combo(self):
-        """モードに応じてモデルコンボボックスを更新"""
+        """APIモデルでコンボボックスを初期化"""
         # コンボボックスをクリア
         self.model_combo.clear()
         
-        # 現在のモードに応じたモデルリストを取得
+        # APIモデルリストを取得
         models = self.transcription_manager.get_available_models()
         
         # モデルをコンボボックスに追加
@@ -1182,9 +1080,8 @@ class MainWindow(QMainWindow):
                 Qt.ItemDataRole.ToolTipRole
             )
         
-        # 前回選択したモデルの復元（モードに応じて設定キーを変更）
-        setting_key = "local_model" if self.transcription_mode == TranscriptionMode.LOCAL.value else "model"
-        last_model = self.settings.value(setting_key, "base" if self.transcription_mode == TranscriptionMode.LOCAL.value else AppConfig.DEFAULT_MODEL)
+        # 前回選択したモデルの復元
+        last_model = self.settings.value("model", AppConfig.DEFAULT_MODEL)
         
         index = self.model_combo.findData(last_model)
         if index >= 0:

@@ -12,5 +12,4 @@ dependencies = [
     "pyqt6>=6.5.0",
     "sounddevice>=0.4.6",
     "soundfile>=0.12.1",
-    "openai-whisper>=20231117",
 ]
