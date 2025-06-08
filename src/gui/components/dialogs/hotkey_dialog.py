@@ -26,13 +26,7 @@ class HotkeyCapture(QWidget):
         # 押されたキーの組み合わせを表示するラベル
         self.display_label = QLabel("キーを押してください...")
         self.display_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.display_label.setStyleSheet("""
-            border: 1px solid #E2E6EC;
-            border-radius: 4px;
-            padding: 8px;
-            background-color: white;
-            min-height: 24px;
-        """)
+        # スタイルは後で設定
         font = QFont()
         font.setBold(True)
         self.display_label.setFont(font)
@@ -56,6 +50,33 @@ class HotkeyCapture(QWidget):
         
         # ウィジェットがフォーカスを受け取れるようにする
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+        
+        # フォーカス状態のスタイル
+        self.normal_style = """
+            QLabel {
+                border: 2px solid rgba(255, 255, 255, 0.2);
+                border-radius: 12px;
+                padding: 12px 15px;
+                background-color: rgba(255, 255, 255, 0.1);
+                color: #FFFFFF;
+                font-size: 14px;
+                min-height: 24px;
+            }
+        """
+        self.focused_style = """
+            QLabel {
+                border: 2px solid #00D9FF;
+                border-radius: 12px;
+                padding: 12px 15px;
+                background-color: rgba(0, 217, 255, 0.1);
+                color: #FFFFFF;
+                font-size: 14px;
+                min-height: 24px;
+            }
+        """
+        
+        # 初期スタイルを設定
+        self.display_label.setStyleSheet(self.normal_style)
     
     def keyPressEvent(self, event: QKeyEvent):
         """キーが押されたときのイベントハンドラ"""
@@ -100,6 +121,21 @@ class HotkeyCapture(QWidget):
                 self.display_label.setText(self.hotkey_text)
         
         event.accept()
+    
+    def focusInEvent(self, event):
+        """フォーカスを受け取ったときの処理"""
+        self.display_label.setStyleSheet(self.focused_style)
+        super().focusInEvent(event)
+    
+    def focusOutEvent(self, event):
+        """フォーカスを失ったときの処理"""
+        self.display_label.setStyleSheet(self.normal_style)
+        super().focusOutEvent(event)
+    
+    def mousePressEvent(self, event):
+        """マウスクリックでフォーカスを取得"""
+        self.setFocus()
+        super().mousePressEvent(event)
     
     def clear_hotkey(self):
         """ホットキー設定をクリアする"""
@@ -191,6 +227,9 @@ class HotkeyDialog(QDialog):
         
         layout.addLayout(button_layout)
         self.setLayout(layout)
+        
+        # ダイアログが開いたときにホットキーキャプチャにフォーカスを設定
+        self.hotkey_capture.setFocus()
     
     def validate_and_accept(self):
         """
