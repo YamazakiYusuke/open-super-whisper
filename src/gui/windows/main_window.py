@@ -595,7 +595,11 @@ class MainWindow(QMainWindow):
         self.recording_timer.stop()
         
         if audio_file:
-            self.status_bar.showMessage(AppLabels.STATUS_TRANSCRIBING)
+            # 翻訳が有効な場合は翻訳中メッセージを表示
+            if self.translation_enabled:
+                self.status_bar.showMessage(AppLabels.STATUS_TRANSLATING)
+            else:
+                self.status_bar.showMessage(AppLabels.STATUS_TRANSCRIBING)
             self.start_transcription(audio_file)
         else:
             # 録音ファイルが作成されなかった場合は状態表示を非表示
@@ -644,13 +648,21 @@ class MainWindow(QMainWindow):
             self.status_indicator_window.update_timer(time_str)
     
     def start_transcription(self, audio_file=None):
-        self.status_bar.showMessage(AppLabels.STATUS_TRANSCRIBING)
+        # 翻訳が有効な場合は翻訳中メッセージを表示
+        if self.translation_enabled:
+            self.status_bar.showMessage(AppLabels.STATUS_TRANSLATING)
+        else:
+            self.status_bar.showMessage(AppLabels.STATUS_TRANSCRIBING)
         
         # 文字起こし中状態の表示
         if self.show_indicator:
             # 念のため、一度ウィンドウを隠してリセット
             self.status_indicator_window.hide()
-            self.status_indicator_window.set_mode(StatusIndicatorWindow.MODE_TRANSCRIBING)
+            # 翻訳が有効な場合は翻訳モードで表示
+            if self.translation_enabled:
+                self.status_indicator_window.set_mode(StatusIndicatorWindow.MODE_TRANSLATING)
+            else:
+                self.status_indicator_window.set_mode(StatusIndicatorWindow.MODE_TRANSCRIBING)
             self.status_indicator_window.show()
             # 表示後に位置を再調整
             QTimer.singleShot(10, self.status_indicator_window.position_window)

@@ -135,7 +135,7 @@ class StatusIndicatorWindow(QWidget):
         
         elif mode == self.MODE_TRANSLATING:
             self.status_icon.setText("🌐")
-            self.status_label.setText("翻訳中...")
+            self.status_label.setText(AppLabels.INDICATOR_TRANSLATING)
             self.setFixedSize(240, 90)
             self.timer_label.setText("")
             self.timer_label.hide()

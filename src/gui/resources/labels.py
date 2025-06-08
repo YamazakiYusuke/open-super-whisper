@@ -114,6 +114,7 @@ class AppLabels:
     # 状態インジケーター
     INDICATOR_RECORDING = "録音中"
     INDICATOR_TRANSCRIBING = "文字起こし中"
+    INDICATOR_TRANSLATING = "文字起こし翻訳中"
     INDICATOR_TRANSCRIBED = "文字起こし完了"
     
     # システムトレイメニュー
