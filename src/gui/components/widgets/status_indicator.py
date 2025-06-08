@@ -41,7 +41,7 @@ class StatusIndicatorWindow(QWidget):
         # ウィンドウ設定
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.Tool)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
-        self.setFixedSize(150, 90)
+        self.setFixedSize(220, 100)
         
         # レイアウト設定
         main_layout = QVBoxLayout(self)
@@ -52,12 +52,13 @@ class StatusIndicatorWindow(QWidget):
         self.frame.setObjectName("statusFrame")
         
         layout = QVBoxLayout(self.frame)
-        layout.setContentsMargins(8, 12, 8, 12)
-        layout.setSpacing(4)
+        layout.setContentsMargins(12, 12, 12, 12)
+        layout.setSpacing(6)
         
         # アイコンとステータスのレイアウト
         status_layout = QHBoxLayout()
-        status_layout.setSpacing(8)
+        status_layout.setSpacing(10)
+        status_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
         # 状態アイコン
         self.status_icon = QLabel()
@@ -115,7 +116,7 @@ class StatusIndicatorWindow(QWidget):
         if mode == self.MODE_RECORDING:
             self.status_icon.setText("🎙️")
             self.status_label.setText(AppLabels.INDICATOR_RECORDING)
-            self.setFixedSize(180, 90)
+            self.setFixedSize(240, 110)
             self.timer_label.setText("00:00")
             self.timer_label.show()
             
@@ -125,7 +126,7 @@ class StatusIndicatorWindow(QWidget):
         elif mode == self.MODE_TRANSCRIBING:
             self.status_icon.setText("✍️")
             self.status_label.setText(AppLabels.INDICATOR_TRANSCRIBING)
-            self.setFixedSize(180, 70)
+            self.setFixedSize(240, 90)
             self.timer_label.setText("")
             self.timer_label.hide()
             
@@ -135,7 +136,7 @@ class StatusIndicatorWindow(QWidget):
         elif mode == self.MODE_TRANSLATING:
             self.status_icon.setText("🌐")
             self.status_label.setText("翻訳中...")
-            self.setFixedSize(180, 70)
+            self.setFixedSize(240, 90)
             self.timer_label.setText("")
             self.timer_label.hide()
             
@@ -145,7 +146,7 @@ class StatusIndicatorWindow(QWidget):
         elif mode == self.MODE_TRANSCRIBED:
             self.status_icon.setText("✅")
             self.status_label.setText(AppLabels.INDICATOR_TRANSCRIBED)
-            self.setFixedSize(180, 70)
+            self.setFixedSize(240, 90)
             self.timer_label.setText("")
             self.timer_label.hide()
             
@@ -159,12 +160,15 @@ class StatusIndicatorWindow(QWidget):
         """
         ウィンドウを画面の右下に配置
         """
-        screen_geometry = QApplication.primaryScreen().geometry()
+        screen_geometry = QApplication.primaryScreen().availableGeometry()
         window_geometry = self.geometry()
         
-        # 画面の右下から少し内側に配置
-        x = screen_geometry.width() - window_geometry.width() - 20
-        y = screen_geometry.height() - window_geometry.height() - 100
+        # 画面の右下から十分な余白を持って配置（タスクバー等を考慮してavailableGeometryを使用）
+        margin_x = 30  # 右端からの余白
+        margin_y = 30  # 下端からの余白
+        
+        x = screen_geometry.x() + screen_geometry.width() - window_geometry.width() - margin_x
+        y = screen_geometry.y() + screen_geometry.height() - window_geometry.height() - margin_y
         
         self.move(x, y)
     

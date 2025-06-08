@@ -171,10 +171,10 @@ class AppStyles:
         #statusLabel {
             color: white;
             font-weight: bold;
-            font-size: 16px;
+            font-size: 15px;
             font-family: "Segoe UI", sans-serif;
-            margin-top: 3px;
-            padding: 3px;
+            padding: 2px 5px;
+            white-space: nowrap;
         }
         
         #timerLabel {
@@ -187,7 +187,8 @@ class AppStyles:
         
         #statusIcon {
             font-size: 24px;
-            margin: 5px;
+            padding: 4px;
+            min-width: 30px;
         }
     """
 

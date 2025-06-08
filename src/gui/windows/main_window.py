@@ -16,7 +16,7 @@ from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
 
 from src.core.audio_recorder import AudioRecorder
 from src.core.whisper_api import WhisperTranscriber
-from src.core.transcription_manager import TranscriptionManager, TranscriptionMode
+from src.core.transcription_manager import TranscriptionManager
 from src.core.hotkeys import HotkeyManager
 from src.gui.resources.config import AppConfig
 from src.gui.resources.labels import AppLabels
@@ -53,8 +53,6 @@ class MainWindow(QMainWindow):
         self.settings = QSettings(AppConfig.APP_ORGANIZATION, AppConfig.APP_NAME)
         self.api_key = self.settings.value("api_key", AppConfig.DEFAULT_API_KEY)
         
-        # 文字起こしモード（新規追加）
-        self.transcription_mode = int(self.settings.value("transcription_mode", AppConfig.DEFAULT_TRANSCRIPTION_MODE))
         
         # ホットキーとクリップボード設定
         self.hotkey = self.settings.value("hotkey", AppConfig.DEFAULT_HOTKEY)
@@ -74,7 +72,6 @@ class MainWindow(QMainWindow):
         
         # 文字起こし管理クラスの初期化（API→TranscriptionManager）
         self.transcription_manager = TranscriptionManager(api_key=self.api_key)
-        self.transcription_manager.set_mode(self.transcription_mode)
         
         # 翻訳設定を適用
         self.transcription_manager.set_translation_enabled(self.translation_enabled)
@@ -89,6 +86,11 @@ class MainWindow(QMainWindow):
         
         # 現在処理中の音声ファイルへの参照
         self._current_audio_file = None
+        
+        # ホットキーの重複実行防止用のタイムスタンプ
+        self._last_hotkey_trigger = 0
+        self._hotkey_debounce_time = 0.3  # 300ミリ秒のデバウンス
+        self._is_toggling_recording = False  # 録音状態切り替え中フラグ
         
         # サウンド設定
         self.enable_sound = self.settings.value("enable_sound", AppConfig.DEFAULT_ENABLE_SOUND, type=bool)
@@ -500,7 +502,20 @@ class MainWindow(QMainWindow):
         録音の開始/停止を切り替える
         
         現在の録音状態に応じて、録音を開始または停止します。
+        重複実行を防ぐためのデバウンス機能付き。
         """
+        current_time = time.time()
+        
+        # 既に録音状態切り替え中の場合は無視
+        if self._is_toggling_recording:
+            return
+            
+        # デバウンス: 前回のトリガーから一定時間経過していない場合は無視
+        if current_time - self._last_hotkey_trigger < self._hotkey_debounce_time:
+            return
+            
+        self._last_hotkey_trigger = current_time
+        
         # GUIスレッドでの実行を保証するためQTimer.singleShotを使用
         QTimer.singleShot(0, self._toggle_recording_impl)
     
@@ -510,10 +525,17 @@ class MainWindow(QMainWindow):
         
         録音の状態を確認し、録音の開始または停止を行います。
         """
-        if self.audio_recorder.is_recording():
-            self.stop_recording()
-        else:
-            self.start_recording()
+        # 録音状態切り替え中フラグを設定
+        self._is_toggling_recording = True
+        
+        try:
+            if self.audio_recorder.is_recording():
+                self.stop_recording()
+            else:
+                self.start_recording()
+        finally:
+            # 処理完了後にフラグをクリア
+            self._is_toggling_recording = False
     
     def start_recording(self):
         """
@@ -543,6 +565,8 @@ class MainWindow(QMainWindow):
             self.status_indicator_window.hide()
             self.status_indicator_window.set_mode(StatusIndicatorWindow.MODE_RECORDING)
             self.status_indicator_window.show()
+            # 表示後に位置を再調整
+            QTimer.singleShot(10, self.status_indicator_window.position_window)
         
         self.status_bar.showMessage(AppLabels.STATUS_RECORDING)
         
@@ -624,6 +648,8 @@ class MainWindow(QMainWindow):
             self.status_indicator_window.hide()
             self.status_indicator_window.set_mode(StatusIndicatorWindow.MODE_TRANSCRIBING)
             self.status_indicator_window.show()
+            # 表示後に位置を再調整
+            QTimer.singleShot(10, self.status_indicator_window.position_window)
         
         # 言語の選択
         selected_language = self.language_combo.currentData()
@@ -713,6 +739,8 @@ class MainWindow(QMainWindow):
         if self.show_indicator:
             self.status_indicator_window.set_mode(StatusIndicatorWindow.MODE_TRANSCRIBED)
             self.status_indicator_window.show()
+            # 表示後に位置を再調整
+            QTimer.singleShot(10, self.status_indicator_window.position_window)
         
         # 自動コピー・ペーストの処理
         if self.auto_copy:
